@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Now</title>
+		<link rel="stylesheet" href="style.css">
+		<link href="icons/gsa-57.png"  sizes="57x57" rel="apple-touch-icon-precomposed"  />
+		<link href="icons/gsa-72.png"  sizes="72x72" rel="apple-touch-icon-precomposed"  />
+		<link href="icons/gsa-114.png" sizes="114x114" rel="apple-touch-icon-precomposed"  />
+		<link href="icons/gsa-144.png" sizes="144x114" rel="apple-touch-icon-precomposed"  />
+		<link href="icons/gsa-startup.png" media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 1)" rel="apple-touch-startup-image" />
+		<link href="icons/gsa-startup-2x.png" media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)"  rel="apple-touch-startup-image" />
+		<link href="icons/gsa-startup-iphone5.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="viewport" content="width=640,initial-scale=0.5,user-scalable=no">
+		
+		<style type="text/css" media="screen">
+		* {
+		  margin:0;
+		  padding:0;
+		  border:none;
+		  -webkit-user-select:none;
+		}
+
+		body {
+		  font: 28px/1em "Helvetica";
+		  color: #FFF;
+		  overflow: hidden;
+		  -webkit-tap-highlight-color: rgba(0,0,0,0);
+		  -webkit-perspective: 1000px;
+		}
+
+		a {
+		  color: white;
+		}
+
+		::-webkit-scrollbar {
+		  width: 0px;
+		  height: 0px;
+		}
+
+		#FramerRoot {
+			-webkit-transform: scale(0.5, 0.5); rotate(.1deg);;
+			-webkit-transform-origin: 0% 0%;
+		}
+		</style>
+		
+	</head>
+	<body>
+		<script src="framer/views.GoogleNow.js"></script>
+		<script src="framer/framer.js"></script>
+		<script>
+			if (window.location.protocol == "file:") {
+				utils.domLoadScript("framer/framerps.js", function() {
+					utils.domLoadScript("app.js");
+				})
+			} else {
+				utils.domLoadScript("/static/js/example.preload.js");
+			}
+		</script>
+	</body>
+</html>

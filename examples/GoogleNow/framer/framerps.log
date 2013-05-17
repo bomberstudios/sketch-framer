@@ -1,0 +1,13 @@
+{"docName":"GoogleNow","path":"~/Desktop/Framer2.old/static/examples/GoogleNow","relativeImagePath":"images","imagePath":"~/Desktop/Framer2.old/static/examples/GoogleNow/images","framerPath":"~/Desktop/Framer2.old/static/examples/GoogleNow/framer","viewInfoPath":"~/Desktop/Framer2.old/static/examples/GoogleNow/framer/views.GoogleNow.js","logPaths":["/tmp/framerps.log","~/Desktop/Framer2.old/static/examples/GoogleNow/framer/framerps.log"]}
+
+Running for ~/Desktop/Framer2.old/static/examples/GoogleNow
+PROGRESS: 76.9230769230769
+StatusBar: Exporting image
+PROGRESS: 100
+2 views changed
+Skipping ~/Desktop/Framer2.old/static/examples/GoogleNow/index.html (exists)
+Skipping ~/Desktop/Framer2.old/static/examples/GoogleNow/app.js (exists)
+Skipping ~/Desktop/Framer2.old/static/examples/GoogleNow/framer/framer.js (exists)
+Skipping ~/Desktop/Framer2.old/static/examples/GoogleNow/framer/framerps.js (exists)
+
+SUCCESS: ~/Desktop/Framer2.old/static/examples/GoogleNow

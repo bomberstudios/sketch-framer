@@ -1,0 +1,36 @@
+{"docName":"GoogleNow","path":"~/Downloads/GoogleNow","relativeImagePath":"images","imagePath":"~/Downloads/GoogleNow/images","framerPath":"~/Downloads/GoogleNow/framer","viewInfoPath":"~/Downloads/GoogleNow/framer/views.GoogleNow.js","logPaths":["/tmp/framerps.log","~/Downloads/GoogleNow/framer/framerps.log"]}
+
+Running for ~/Downloads/GoogleNow
+Could not read data file
+Searchbox: Exporting image
+PROGRESS: 15.3846153846154
+Logo: Exporting image
+PROGRESS: 23.0769230769231
+TrafficCard: Exporting image
+PROGRESS: 30.7692307692308
+MovieCard: Exporting image
+PROGRESS: 38.4615384615385
+TimeCard: Exporting image
+PROGRESS: 46.1538461538462
+Context: Exporting image
+PROGRESS: 53.8461538461538
+Actions: Exporting image
+PROGRESS: 61.5384615384615
+Top: Exporting image
+PROGRESS: 69.2307692307692
+Background: Exporting image
+PROGRESS: 76.9230769230769
+PROGRESS: 76.9230769230769
+StatusBar: Exporting image
+bars: Exporting image
+PROGRESS: 92.3076923076923
+carrier: Exporting image
+PROGRESS: 100
+PROGRESS: 100
+13 views changed
+Writing ~/Downloads/GoogleNow/index.html
+Writing ~/Downloads/GoogleNow/app.js
+Writing ~/Downloads/GoogleNow/framer/framer.js
+Writing ~/Downloads/GoogleNow/framer/framerps.js
+
+SUCCESS: ~/Downloads/GoogleNow
