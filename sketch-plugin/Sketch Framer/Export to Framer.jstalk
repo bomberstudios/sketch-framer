@@ -1,5 +1,8 @@
 // Sketch Framer draft (ctrl alt command f)
 
+// This command REQUIRES at least Sketch Version 2.3 (419),
+// as it uses an API not available in earlier versions
+
 /*
 
 This plugin will export your Sketch document to a Framer project.
