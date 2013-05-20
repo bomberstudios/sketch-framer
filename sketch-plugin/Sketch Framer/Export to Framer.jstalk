@@ -16,7 +16,7 @@ This plugin will export your Sketch document to a Framer project.
 // TODO: Check for duplicated names in exported files
 // TODO: Calculate proper IDs (not sure what they're used for, but hey...)
 // TODO: Calculate proper modification hash
-// TODO: Create app.js, index.html and framerps.js
+// TODO: Embed framer.js on this file, instead of 'curl'ing it from Github
 
 
 
