@@ -1,0 +1,169 @@
+// Sketch Framer draft (ctrl alt command f)
+
+/*
+
+This plugin will export your Sketch document to a Framer project.
+
+- Every layer group will become an ImageView, backed by the pixel and/or shape layers in that layer group.
+- Views are accessible by name under the PSD object (yeah, I know...)
+- Framer respects the layer hierarchy, so a sub layer group will become a subview. This way you can define your view structure in Photoshop.
+- TODO: Layer groups with vector masks will become views with clipping enabled. You can optionally add "scroll" to the layer group name to make it a ScrollView.
+- Layer group names should be unique, if they're not Framer will silently rename them on export.
+
+*/
+
+
+// TODO: Check for duplicated names in exported files
+// TODO: Calculate proper IDs (not sure what they're used for, but hey...)
+// TODO: Calculate proper modification hash
+// TODO: Create app.js, index.html and framerps.js
+
+
+
+function is_group(layer) {
+  return [layer isMemberOfClass:[MSLayerGroup class]];
+}
+function has_children_groups(layer) {
+  var sublayers = [layer layers];
+  for (var sub=0; sub < [sublayers length]; sub++) {
+    if (is_group(sublayers[sub])) {
+      return true;
+    }
+  }
+  return false;
+}
+function is_shape(layer) {
+  return [layer isMemberOfClass:[MSShapeGroup class]];
+}
+function sanitize_filename(name){
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_");
+}
+function export_layer(layer) {
+  log("Exporting " + layer);
+  [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
+}
+function process_layer(layer,metadata_container) {
+
+  log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
+
+  if(is_group(layer)){
+    log("It is, indeed, a group.");
+    // If layer is a group, do:
+
+    // - Get layer data
+    var layer_data = extract_metadata_from(layer);
+    layer_data.children = [];
+
+    // - Export image if layer has no subgroups
+    if (!has_children_groups(layer)) {
+      export_layer(layer);
+    } else {
+      var sublayers = [layer layers];
+
+      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+        var current = sublayers[sub];
+        log([current name]);
+        if (is_group(current)) {
+          log("Found subgroups in '" + [current name] + "'");
+          process_layer(current,layer_data.children);
+        }
+      }
+    }
+    metadata_container.push(layer_data);
+  } else {
+    log("<" + [layer name] + "> is not a group, so we won't process it");
+  }
+}
+function save_file_from_string(filename,the_string) {
+  var path = [@"" stringByAppendingString:filename],
+      str = [@"" stringByAppendingString:the_string];
+  [str writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:null];
+}
+function get_next_id() {
+  return ++id;
+}
+function extract_metadata_from(layer) {
+  var metadata = {},
+      frame = [layer frame];
+
+  //metadata.id = get_next_id(); // FIXME
+  metadata.name = sanitize_filename([layer name]);
+  metadata.layerFrame = {};
+  metadata.layerFrame.x = [[layer absoluteRect] rulerX];
+  metadata.layerFrame.y = [[layer absoluteRect] rulerY];
+  metadata.layerFrame.width = [frame width];
+  metadata.layerFrame.height = [frame height];
+
+  metadata.maskFrame = null;
+
+  if (!has_children_groups(layer)){
+    metadata.image = {};
+    metadata.image.path = "images/" + sanitize_filename([layer name]) + ".png";
+    metadata.image.frame = {};
+    metadata.image.frame.x = [[layer absoluteRect] rulerX];
+    metadata.image.frame.y = [[layer absoluteRect] rulerY];
+    metadata.image.frame.width = [frame width];
+    metadata.image.frame.height = [frame height];
+    metadata.imageType = "png";
+  } else {
+    metadata.image = null;
+    metadata.imageType = null;
+  }
+  // TODO: Find out how the modification hash is calculated in Framer.app
+  // metadata.modification = new Date();
+
+  return metadata;
+}
+
+var document_path = [[doc fileURL] path].split([doc displayName])[0],
+    document_name = [doc displayName].replace(".sketch",""),
+    target_folder = document_path + "/" + document_name,
+    images_folder = document_path + "/" + document_name + "/images",
+    framer_folder = document_path + "/" + document_name + "/framer",
+    file_manager = [NSFileManager defaultManager],
+    id = 0,
+    templates = {
+      "index.html": "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t\n\t\t<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">\n\t\t<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black\">\n\t\t<meta name=\"format-detection\" content=\"telephone=no\">\n\t\t<meta name=\"viewport\" content=\"width=640,initial-scale=0.5,user-scalable=no\">\n\t\t\n\t\t<style type=\"text/css\" media=\"screen\">\n\t\t\n\t\t* {\n\t\t\tmargin:0;\n\t\t\tpadding:0;\n\t\t\tborder:none;\n\t\t\t-webkit-user-select:none;\n\t\t}\n\n\t\tbody {\n\t\t\tbackground-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRFMzMzDBMatgEYWQAAABhJREFUeNpiYIADRjhgGNKCw8UfcAAQYACltADJ8fw9RwAAAABJRU5ErkJggg==);\n\t\t\tfont: 28px/1em \"Helvetica\";\n\t\t\tcolor: #FFF;\n\t\t\t-webkit-tap-highlight-color: rgba(0,0,0,0);\n\t\t\t-webkit-perspective: 1000px;\n\t\t}\n\t\t\n\t\t::-webkit-scrollbar {\n\t\t\twidth: 0px;\n\t\t\theight: 0px;\n\t\t}\n\t\t\n\t\t</style>\n\t\t\n\t</head>\n\t<body>\n\t\t{{ views }}\n\t\t<script src=\"framer/framer.js\"></script>\n\t\t<script src=\"framer/framerps.js\"></script>\n\t\t<script src=\"app.js\"></script>\n\t</body>\n</html>",
+      "app.js": "// Hello, welcome to your new Framer project. This is where you should \n// start coding. Feel free to remove all of this code.\n// \n// Just to rehash: Framer just converted all your layer groups into framer\n// views. Just drop index.html (next to this file) on your browser to see\n// the result. Every view is available under the global PSD object, so if you\n// had a layer group called MyPhoto you can find it under PSD[\"MyPhoto\"].\n// \n// You can safely re-run the Framer app any time and this code will stay \n// intact. Framer will only update the graphics.\n// \n// Some links that could come in handy:\n// \n// \t- Docs: \thttp://www.framer.com/documentation\n// \t- Examples: http://www.framer.com/examples\n\n\n// ==============================================================\n// Example: bounce all the views!\n\n\n// Simple reusable function that binds a bounce to a click on a view\nfunction bounceOnClick(view) {\n\t\n\t// If the view is a normal view (not a scrollview)\n\tif (view instanceof View) {\n\t\t\n\t\t// Listen to a click event\n\t\tview.on(\"click\", function(event) {\n\t\t\t\n\t\t\t// Stop sending the click event to underlying views after this\n\t\t\tevent.stopPropagation()\n\t\t\t\n\t\t\t// \"Wind up\" the spring\n\t\t\tview.scale = 0.7\n\t\t\t\n\t\t\t// And scale back to full size with a spring curve\n\t\t\tview.animate({\n\t\t\t\tproperties:{scale:1.0},\n\t\t\t\tcurve: \"spring(1000,15,500)\"\n\t\t\t})\n\t\t})\n\t}\n}\n\n\n// Loop through all the exported views\nfor (var layerGroupName in PSD) {\n\tbounceOnClick(PSD[layerGroupName]);\n}",
+      "framerps.js": "var loadViews = function() {\n\t\n\tvar Views = []\n\tvar ViewsByName = {}\n\t\n\tcreateView = function(info, superView) {\n\t\t\n\t\t// console.log(\"createView\", info.name, \"superView: \", superView)\n\t\t\n\t\tvar viewType, viewFrame\n\t\tvar viewInfo = {\n\t\t\tclip: false\n\t\t}\n\t\t\n\t\tif (info.image) {\n\t\t\tviewType = ImageView\n\t\t\tviewFrame = info.image.frame\n\t\t\tviewInfo.image = \"images/\" + info.name + \".\" + info.imageType\n\t\t}\n\t\t\n\t\telse {\n\t\t\tviewType = View\n\t\t\tviewFrame = info.layerFrame\n\t\t}\n\t\t\n\t\t// If this layer group has a mask, we take the mask bounds\n\t\t// as the frame and clip the layer\n\t\tif (info.maskFrame) {\n\t\t\tviewFrame = info.maskFrame\n\t\t\tviewInfo.clip = true\n\t\t\t\n\t\t\t// If the layer name has \"scroll\" we make this a scroll view\n\t\t\tif (info.name.toLowerCase().indexOf(\"scroll\") != -1) {\n\t\t\t\tviewType = ScrollView\n\t\t\t}\n\t\t\t\n\t\t\t// If the layer name has \"paging\" we make this a paging view\n\t\t\tif (info.name.toLowerCase().indexOf(\"paging\") != -1) {\n\t\t\t\tviewType = ui.PagingView\n\t\t\t}\n\n\t\t}\n\t\t\n\t\tvar view = new viewType(viewInfo)\n\t\t\n\t\tview.frame = viewFrame\n\t\t\n\t\t// If the view has a contentview (like a scrollview) we add it\n\t\t// to that one instead.\n\t\tif (superView && superView.contentView) {\n\t\t\tview.superView = superView.contentView\n\t\t} else {\n\t\t\tview.superView = superView\n\t\t}\n\t\t\n\t\tview.name = info.name\n\t\tview.viewInfo = info\n\t\t\n\t\tViews.push(view)\n\t\tViewsByName[info.name] = view\n\n\t\t// If the layer name contains draggable we create a draggable for this layer\n\t\tif (info.name.toLowerCase().indexOf(\"draggable\") != -1) {\n\t\t\tview.draggable = new ui.Draggable(view)\n\t\t}\n\n\t\tfor (var i in info.children) {\n\t\t\tcreateView(info.children[info.children.length - 1 - i], view)\n\t\t}\n\n\t}\n\t\t\n\t// Loop through all the photoshop documents\n\tfor (var documentName in FramerPS) {\n\t\t// Load the layers for this document\n\t\tfor (var layerIndex in FramerPS[documentName]) {\n\t\t\tcreateView(FramerPS[documentName][layerIndex])\n\t\t}\n\t}\n\t\n\t\n\tfor (var i in Views) {\n\t\t\n\t\tvar view = Views[i]\n\t\t\n\t\t// // Views without subviews and image should be 0x0 pixels\n\t\tif (!view.image && !view.viewInfo.maskFrame && !view.subViews.length) {\n\t\t\tconsole.log(view.name, view.viewInfo.maskFrame)\n\t\t\tview.frame = {x:0, y:0, width:0, height:0}\n\t\t}\n\t\t\n\t\tfunction shouldCorrectView(view) {\n\t\t\treturn !view.image && !view.viewInfo.maskFrame\n\t\t}\n\n\t\t// If a view has no image or mask, make it the size of it's combined subviews\n\t\tif (shouldCorrectView(view)) {\n\n\t\t\tvar frame = null\n\t\t\t\n\t\t\tfunction traverse(views) {\n\t\t\t\tviews.map(function(view) {\n\n\t\t\t\t\tif (shouldCorrectView(view)) {\n\t\t\t\t\t\treturn\n\t\t\t\t\t}\n\n\t\t\t\t\tif (!frame) {\n\t\t\t\t\t\tframe = view.frame\n\t\t\t\t\t} else {\n\t\t\t\t\t\tframe = frame.merge(view.frame)\n\t\t\t\t\t}\n\n\t\t\t\t\ttraverse(view.subViews)\n\t\t\t\t})\n\t\t\t}\n\t\t\t\n\t\t\ttraverse(view.subViews)\n\t\t\tview.frame = frame\n\t\t\t\n\t\t}\n\t\t\n\t\t// Correct all the view frames for the superView coordinate system\n\t\tif (view.superView) {\n\t\t\tview.frame = view.superView.convertPoint(view.frame)\n\t\t}\n\t\t\n\t}\n\t\n\treturn ViewsByName\n\n}\n\nwindow.PSD = loadViews()\n"
+    }
+
+function main() {
+  log('#################################################################################################################################################');
+  log('Getting layer groups...');
+
+  // Create folders
+  [file_manager createDirectoryAtPath:target_folder withIntermediateDirectories:true attributes:nil error:nil];
+  [file_manager createDirectoryAtPath:images_folder withIntermediateDirectories:true attributes:nil error:nil];
+  [file_manager createDirectoryAtPath:framer_folder withIntermediateDirectories:true attributes:nil error:nil];
+
+  // Get all layers in current page
+  var all_layers = [[doc currentPage] layers],
+      metadata = [];
+
+  // Sketch returns layers in reverse order (back to front), so we'll loop backwards through them:
+  for (var i=([all_layers length] - 1); i >= 0 ; i--) {
+    process_layer(all_layers[i],metadata);
+  }
+
+  file_path = framer_folder + "/views." + document_name + ".js";
+
+  var file_contents = "window.FramerPS = window.FramerPS || {};\nwindow.FramerPS['" + document_name +"'] = " + JSON.stringify(metadata,null,2);
+  save_file_from_string(file_path,file_contents);
+
+  // Save JS files from templates:
+  save_file_from_string(target_folder + "/index.html",  templates["index.html"].replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
+  save_file_from_string(target_folder + "/app.js", templates["app.js"]);
+  save_file_from_string(framer_folder + "/framerps.js", templates["framerps.js"]);
+
+  // Get JS files from Github
+  var task = [[NSTask alloc] init],
+      argsArray = [NSArray arrayWithObjects:"-O", "https://raw.github.com/koenbok/Framer/master/build/framer.js", nil];
+
+  [task setCurrentDirectoryPath:framer_folder];
+  [task setLaunchPath:"/usr/bin/curl"];
+  [task setArguments:argsArray];
+  [task launch];
+}
+
+main();
