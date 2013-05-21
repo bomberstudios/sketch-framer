@@ -62,7 +62,8 @@ function process_layer(layer,metadata_container) {
       export_layer(layer);
     } else {
       var sublayers = [layer layers];
-
+      // Apparently, Sketch returns child layers in reverse order (back to front),
+      // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
         log([current name]);
@@ -144,8 +145,7 @@ function main() {
   var all_layers = [[doc currentPage] layers],
       metadata = [];
 
-  // Sketch returns layers in reverse order (back to front), so we'll loop backwards through them:
-  for (var i=([all_layers length] - 1); i >= 0 ; i--) {
+  for (var i=0; i < [all_layers length]; i++) {
     process_layer(all_layers[i],metadata);
   }
 
