@@ -6,4 +6,4 @@ Sketch Framer
 
 This is the future home of the Sketch to FramerJS plugin.
 
-By now, I'm [documenting progress on the Wiki](https://github.com/bomberstudios/sketch-framer/wiki), so there's no code to play with (yet :)
+<iframe src="http://player.vimeo.com/video/67393477?portrait=0" width="500" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
