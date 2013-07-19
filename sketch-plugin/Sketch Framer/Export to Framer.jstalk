@@ -156,8 +156,10 @@ function main() {
 
   // Save JS files from templates:
   save_file_from_string(target_folder + "/index.html",  templates["index.html"].replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
-  save_file_from_string(target_folder + "/app.js", templates["app.js"]);
   save_file_from_string(framer_folder + "/framerps.js", templates["framerps.js"]);
+  if(![file_manager fileExistsAtPath:(target_folder + "/app.js")]) {
+    save_file_from_string(target_folder + "/app.js", templates["app.js"]);
+  }
 
   // Get JS files from Github
   var task = [[NSTask alloc] init],
