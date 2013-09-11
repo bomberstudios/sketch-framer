@@ -43,7 +43,10 @@ function sanitize_filename(name){
 }
 function export_layer(layer) {
   log("Exporting " + layer);
-  [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
+  // [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
+  var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
+  var rect = [layer absoluteRect];
+  [doc saveArtboardOrSlice:rect toFile:filename];
 }
 function process_layer(layer,metadata_container) {
 
