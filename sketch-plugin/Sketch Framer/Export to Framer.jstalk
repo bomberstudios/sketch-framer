@@ -27,13 +27,17 @@ function is_group(layer) {
   return [layer isMemberOfClass:[MSLayerGroup class]];
 }
 function has_children_groups(layer) {
-  var sublayers = [layer layers];
-  for (var sub=0; sub < [sublayers length]; sub++) {
-    if (is_group(sublayers[sub])) {
-      return true;
+  if(is_group(layer)) {
+    var sublayers = [layer layers];
+    for (var sub=0; sub < [sublayers length]; sub++) {
+      if (is_group(sublayers[sub])) {
+        return true;
+      }
     }
+    return false;
+  } else {
+    return false;
   }
-  return false;
 }
 function is_shape(layer) {
   return [layer isMemberOfClass:[MSShapeGroup class]];
@@ -46,43 +50,16 @@ function export_layer(layer) {
   // [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
 
+  var copy = [layer duplicate];
+  var frame = [copy frame];
+  [frame setX:1000];
+  [frame setY:1000];
 
-  // hide all other layers for now
-  var all_layers = [[doc currentPage] layers];
-
-  for (var i=0; i < [all_layers length]; i++) {
-    hide_layer_unless(all_layers[i], layer);
-  }
-
-  var rect = [layer absoluteRect];
+  var rect = [copy absoluteRect];
   [doc saveArtboardOrSlice:rect toFile:filename];
+  [copy setIsVisible:false];
 }
 
-
-
-function hide_layer_unless(layer, active_layer) {
-  log("Hiding <" + [layer name] + "> unless <" + [active_layer name] + ">");
-
-  if (layer == active_layer) {
-    [layer setIsVisible:true];
-  } else {
-    if (!has_children_groups(layer)) {
-      // doesn't have children, so let's hide it
-      // log("Hiding" + [layer name]);
-      [layer setIsVisible:false];
-    } else {
-      // // loop through the children
-      var sublayers = [layer layers];
-      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-        var current = sublayers[sub];
-        if (is_group(current)) {
-          // log("Sublayer" + [current name]);
-          hide_layer_unless(current, active_layer);
-        }
-      }
-    }
-  }
-}
 
 
 function process_layer(layer,metadata_container) {
@@ -106,15 +83,14 @@ function process_layer(layer,metadata_container) {
       // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
-        // log([current name]);
-        if (is_group(current)) {
-          // log("Found subgroups in '" + [current name] + "'");
-          process_layer(current,layer_data.children);
-        }
+        process_layer(current,layer_data.children);
       }
     }
     metadata_container.push(layer_data);
   } else {
+    var layer_data = extract_metadata_from(layer);
+    export_layer(layer);
+    metadata_container.push(layer_data);
     // log("<" + [layer name] + "> is not a group, so we won't process it");
   }
 }
