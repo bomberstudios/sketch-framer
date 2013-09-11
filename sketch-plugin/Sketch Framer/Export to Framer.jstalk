@@ -50,13 +50,17 @@ function export_layer(layer) {
   // [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
 
+  // copy off-screen
   var copy = [layer duplicate];
   var frame = [copy frame];
   [frame setX:1000];
   [frame setY:1000];
 
+  // export
   var rect = [copy absoluteRect];
   [doc saveArtboardOrSlice:rect toFile:filename];
+
+  // hide, so it doesn't futz with others
   [copy setIsVisible:false];
 }
 
@@ -83,15 +87,16 @@ function process_layer(layer,metadata_container) {
       // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
+        // process layers even if not groups. (not sure how to do this selectively?)
         process_layer(current,layer_data.children);
       }
     }
     metadata_container.push(layer_data);
   } else {
+    // this exports "naked" layers that are not in groups
     var layer_data = extract_metadata_from(layer);
     export_layer(layer);
     metadata_container.push(layer_data);
-    // log("<" + [layer name] + "> is not a group, so we won't process it");
   }
 }
 function save_file_from_string(filename,the_string) {
@@ -188,7 +193,8 @@ function main() {
   [task setArguments:argsArray];
   [task launch];
 
-  // undo
+  // undo the whole thing (delete duplicate layers)
+
   CGInhibitLocalEvents(true);
   CGEnableEventStateCombining(false);
 
