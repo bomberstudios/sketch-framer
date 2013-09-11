@@ -42,18 +42,55 @@ function sanitize_filename(name){
   return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_");
 }
 function export_layer(layer) {
-  log("Exporting " + layer);
+  // log("Exporting " + [layer name]);
   // [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
+
+
+  // hide all other layers for now
+  var all_layers = [[doc currentPage] layers];
+
+  for (var i=0; i < [all_layers length]; i++) {
+    hide_layer_unless(all_layers[i], layer);
+  }
+
   var rect = [layer absoluteRect];
   [doc saveArtboardOrSlice:rect toFile:filename];
 }
+
+
+
+function hide_layer_unless(layer, active_layer) {
+  log("Hiding <" + [layer name] + "> unless <" + [active_layer name] + ">");
+
+  if (layer == active_layer) {
+    [layer setIsVisible:true];
+  } else {
+    if (!has_children_groups(layer)) {
+      // doesn't have children, so let's hide it
+      // log("Hiding" + [layer name]);
+      [layer setIsVisible:false];
+    } else {
+      // // loop through the children
+      var sublayers = [layer layers];
+      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+        var current = sublayers[sub];
+        if (is_group(current)) {
+          // log("Sublayer" + [current name]);
+          hide_layer_unless(current, active_layer);
+        }
+      }
+    }
+  }
+}
+
+
 function process_layer(layer,metadata_container) {
 
-  log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
+  // log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
 
   if(is_group(layer)){
-    log("It is, indeed, a group.");
+    // log("It is, indeed, a group.");
     // If layer is a group, do:
 
     // - Get layer data
@@ -69,16 +106,16 @@ function process_layer(layer,metadata_container) {
       // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
-        log([current name]);
+        // log([current name]);
         if (is_group(current)) {
-          log("Found subgroups in '" + [current name] + "'");
+          // log("Found subgroups in '" + [current name] + "'");
           process_layer(current,layer_data.children);
         }
       }
     }
     metadata_container.push(layer_data);
   } else {
-    log("<" + [layer name] + "> is not a group, so we won't process it");
+    // log("<" + [layer name] + "> is not a group, so we won't process it");
   }
 }
 function save_file_from_string(filename,the_string) {
