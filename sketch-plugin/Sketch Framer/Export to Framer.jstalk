@@ -46,7 +46,7 @@ function sanitize_filename(name){
   return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_");
 }
 function export_layer(layer) {
-  // log("Exporting " + [layer name]);
+  log("Exporting " + [layer name]);
   // [layer writeBitmapImageToFile:images_folder + "/" + sanitize_filename([layer name]) + ".png"];
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
 
@@ -64,7 +64,7 @@ function export_layer(layer) {
 
 function process_layer(layer,metadata_container) {
 
-  // log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
+  log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
 
   if(is_group(layer)){
     // log("It is, indeed, a group.");
@@ -187,6 +187,30 @@ function main() {
   [task setLaunchPath:"/usr/bin/curl"];
   [task setArguments:argsArray];
   [task launch];
+
+  // undo
+  CGInhibitLocalEvents(true);
+  CGEnableEventStateCombining(false);
+
+  var keyDown = true;
+  var keyUp   = false;
+
+  // command down:
+  CGPostKeyboardEvent(0, 55, keyDown);
+
+  // v down, then up
+  CGPostKeyboardEvent(0, 6, keyDown);
+  CGPostKeyboardEvent(0, 6, keyUp);
+
+  // command up
+  CGPostKeyboardEvent(0, 55, keyUp);
+
+
+  CGEnableEventStateCombining(true);
+  CGInhibitLocalEvents(false);
+
+
+
 }
 
 main();
