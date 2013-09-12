@@ -193,7 +193,9 @@ function main() {
   [task setArguments:argsArray];
   [task launch];
 
-  // undo the whole thing (delete duplicate layers)
+
+  // pretty jank way to invoke edit > unfo in sketch
+  // to get rid of all the duplicate layers we added
 
   CGInhibitLocalEvents(true);
   CGEnableEventStateCombining(false);
@@ -204,7 +206,7 @@ function main() {
   // command down:
   CGPostKeyboardEvent(0, 55, keyDown);
 
-  // v down, then up
+  // z down, then up
   CGPostKeyboardEvent(0, 6, keyDown);
   CGPostKeyboardEvent(0, 6, keyUp);
 
