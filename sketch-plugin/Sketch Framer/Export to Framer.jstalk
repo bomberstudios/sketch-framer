@@ -115,27 +115,30 @@ function get_next_id() {
   return ++id;
 }
 function extract_metadata_from(layer) {
-  var metadata = {},
-      frame = [layer frame];
+  var frame = [layer frame];
 
   //metadata.id = get_next_id(); // FIXME
-  metadata.name = sanitize_filename([layer name]);
-  metadata.layerFrame = {};
-  metadata.layerFrame.x = [[layer absoluteRect] rulerX];
-  metadata.layerFrame.y = [[layer absoluteRect] rulerY];
-  metadata.layerFrame.width = [frame width];
-  metadata.layerFrame.height = [frame height];
-
-  metadata.maskFrame = null;
+  var metadata = {
+    name: sanitize_filename([layer name]),
+    layerFrame: {
+      x: [[layer absoluteRect] rulerX],
+      y: [[layer absoluteRect] rulerY],
+      width: [frame width],
+      height: [frame height]
+    },
+    maskFrame: null
+  };
 
   if (!has_children_groups(layer) || should_flatten_layer(layer)){
-    metadata.image = {};
-    metadata.image.path = "images/" + sanitize_filename([layer name]) + ".png";
-    metadata.image.frame = {};
-    metadata.image.frame.x = [[layer absoluteRect] rulerX];
-    metadata.image.frame.y = [[layer absoluteRect] rulerY];
-    metadata.image.frame.width = [frame width];
-    metadata.image.frame.height = [frame height];
+    metadata.image = {
+      path: "images/" + sanitize_filename([layer name]) + ".png",
+      frame: {
+        x: [[layer absoluteRect] rulerX],
+        y: [[layer absoluteRect] rulerY],
+        width: [frame width],
+        height: [frame height]
+      }
+    };
     metadata.imageType = "png";
   } else {
     metadata.image = null;
