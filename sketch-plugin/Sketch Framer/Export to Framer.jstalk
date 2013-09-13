@@ -44,7 +44,7 @@ function is_shape(layer) {
   return [layer isMemberOfClass:[MSShapeGroup class]];
 }
 function sanitize_filename(name){
-  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_");
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","");
 }
 function export_layer(layer) {
   log("Exporting " + [layer name]);
@@ -65,11 +65,19 @@ function export_layer(layer) {
   [copy removeFromParent];
 }
 
+function should_flatten_layer(layer) {
+  var name = [layer name];
+  if(name.substr(0,1) == "*") {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 
 function process_layer(layer,metadata_container) {
 
-  log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
+  // log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
 
   if(is_group(layer)){
     // log("It is, indeed, a group.");
@@ -80,7 +88,7 @@ function process_layer(layer,metadata_container) {
     layer_data.children = [];
 
     // - Export image if layer has no subgroups
-    if (!has_children_groups(layer)) {
+    if (!has_children_groups(layer) || should_flatten_layer(layer)) {
       export_layer(layer);
     } else {
       var sublayers = [layer layers];
@@ -122,7 +130,7 @@ function extract_metadata_from(layer) {
 
   metadata.maskFrame = null;
 
-  if (!has_children_groups(layer)){
+  if (!has_children_groups(layer) || should_flatten_layer(layer)){
     metadata.image = {};
     metadata.image.path = "images/" + sanitize_filename([layer name]) + ".png";
     metadata.image.frame = {};
