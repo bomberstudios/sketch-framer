@@ -55,8 +55,8 @@ function export_layer(layer) {
   // copy off-screen
   var copy = [layer duplicate];
   var frame = [copy frame];
-  [frame setX:1000];
-  [frame setY:1000];
+  [frame setX:-100000];
+  [frame setY:-100000];
 
   // export
   var rect = [copy absoluteRect];
