@@ -40,6 +40,27 @@ function should_ignore_layer(layer) {
 function sanitize_filename(name){
   return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","");
 }
+
+
+function has_art(layer) {
+  // return true;
+  if(is_group(layer) && !should_flatten_layer(layer)) {
+    var has_art = false;
+
+    var sublayers = [layer layers];
+    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+      var sublayer = sublayers[sub];
+      if(!should_ignore_layer(sublayer) && !should_become_view(sublayer)) {
+        has_art = true;
+      }
+    }
+    return has_art;
+
+  } else {
+    return true;
+  }
+}
+
 function export_layer(layer, depth) {
   log_depth("Exporting <" + [layer name] + ">", depth);
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
@@ -160,18 +181,21 @@ function extract_metadata_from(layer) {
     maskFrame: null
   };
 
-  metadata.image = {
-    path: "images/" + sanitize_filename([layer name]) + ".png",
-    frame: {
-      x: [[layer absoluteRect] rulerX],
-      y: [[layer absoluteRect] rulerY],
-      width: [frame width],
-      height: [frame height]
-    }
-  };
-  metadata.imageType = "png";
-  // TODO: Find out how the modification hash is calculated in Framer.app
-  // metadata.modification = new Date();
+  if(has_art(layer)) {
+    metadata.image = {
+      path: "images/" + sanitize_filename([layer name]) + ".png",
+      frame: {
+        x: [[layer absoluteRect] rulerX],
+        y: [[layer absoluteRect] rulerY],
+        width: [frame width],
+        height: [frame height]
+      }
+    };
+    metadata.imageType = "png";
+    // TODO: Find out how the modification hash is calculated in Framer.app
+    // metadata.modification = new Date();
+  }
+
 
   return metadata;
 }
