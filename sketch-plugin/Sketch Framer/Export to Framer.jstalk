@@ -25,29 +25,12 @@ This plugin will export your Sketch document to a Framer project.
 var framerjs_url = "https://raw.github.com/koenbok/Framer/master/build/framer.js";
 
 
-function is_view(layer) {
+function should_become_view(layer) {
   return is_group(layer) || [layer name].slice(-1) == '+';
 }
 
 function is_group(layer) {
   return [layer isMemberOfClass:[MSLayerGroup class]] || [layer isMemberOfClass:[MSArtboardGroup class]]
-}
-
-function has_children_groups(layer) {
-  if(is_view(layer)) {
-    var sublayers = [layer layers];
-    for (var sub=0; sub < [sublayers length]; sub++) {
-      if (is_view(sublayers[sub])) {
-        return true;
-      }
-    }
-    return false;
-  } else {
-    return false;
-  }
-}
-function is_shape(layer) {
-  return [layer isMemberOfClass:[MSShapeGroup class]];
 }
 
 function should_ignore_layer(layer) {
@@ -57,8 +40,8 @@ function should_ignore_layer(layer) {
 function sanitize_filename(name){
   return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","");
 }
-function export_layer(layer) {
-  log("Exporting <" + [layer name] + ">");
+function export_layer(layer, depth) {
+  log_depth("Exporting <" + [layer name] + ">", depth);
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
 
   // copy off-screen
@@ -67,15 +50,25 @@ function export_layer(layer) {
   [frame setX:-100000];
   [frame setY:-100000];
 
+  var artnames = "";
+
   // remove subgroups and only leave shapes
   if(is_group(layer) && !should_flatten_layer(layer)) {
     // log([layer name] + " is a group and i'm trying to extract its shapes")
     var sublayers = [copy layers];
-    for (var sub=0; sub < [sublayers length]; sub++) {
+    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
       var sublayer = sublayers[sub];
-      if(is_view(sublayer)) {
-        [sublayer removeFromParent];
+      if(!should_ignore_layer(sublayer)) {
+        // log("       " + [layer name] + "." + [sublayer name] + " (" + [sublayer className] + ")");
+        if(should_become_view(sublayer)) {
+          log("     REMOVING " + [sublayer name]);
+          [sublayer removeFromParent];
+        } else {
+          log("     KEEPING " + [sublayer name]);
+          artnames += [sublayer name] + ", ";
+        }
       }
+
     }
   }
 
@@ -85,6 +78,12 @@ function export_layer(layer) {
 
   // remove it
   [copy removeFromParent];
+
+  if(artnames == "") {
+    log_depth("Exporting <" + [layer name] + "> without children", depth);
+  } else {
+    log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
+  }
 }
 function should_flatten_layer(layer) {
   var name = [layer name];
@@ -94,15 +93,25 @@ function should_flatten_layer(layer) {
     return false;
   }
 }
-function process_layer(layer,metadata_container) {
+
+log_depth = function(message, depth) {
+  var padding = "";
+  for(var i=0; i<depth; i++) {
+    padding = padding + ">"
+  }
+  log(padding + " " + message);
+}
+
+function process_layer(layer,metadata_container,depth) {
+  if(depth > 5) { return; }
+
   if (should_ignore_layer(layer)) {
+    log_depth("Ignoring <" + [layer name] + "> of type <" + [layer className] + ">", depth);
     return;
   }
 
-  log("Processing <" + [layer name] + "> of type <" + [layer className] + ">");
-
-  if(is_view(layer)){
-    log("It is, indeed, a group.");
+  if(should_become_view(layer)){
+    log_depth("Processing <" + [layer name] + "> of type <" + [layer className] + ">", depth);
     // If layer is a group, do:
 
     // - Get layer data
@@ -116,10 +125,10 @@ function process_layer(layer,metadata_container) {
       // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
-        process_layer(current,layer_data.children);
+        process_layer(current,layer_data.children,depth+1);
       }
     }
-    export_layer(layer);
+    export_layer(layer, depth);
     metadata_container.push(layer_data);
   }
 }
@@ -188,7 +197,7 @@ function main() {
       metadata = [];
 
   for (var i=0; i < [all_layers length]; i++) {
-    process_layer(all_layers[i],metadata);
+    process_layer(all_layers[i],metadata, 0);
   }
 
   file_path = framer_folder + "/views." + document_name + ".js";
