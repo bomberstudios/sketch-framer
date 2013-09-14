@@ -25,31 +25,44 @@ This plugin will export your Sketch document to a Framer project.
 var framerjs_url = "https://raw.github.com/koenbok/Framer/master/build/framer.js";
 
 
-function is_group(layer) {
-  return [layer isMemberOfClass:[MSLayerGroup class]] || [layer isMemberOfClass:[MSArtboardGroup class]];
+function should_become_view(layer) {
+  return is_group(layer) || [layer name].slice(-1) == '+';
 }
-function has_children_groups(layer) {
-  if(is_group(layer)) {
+
+function is_group(layer) {
+  return [layer isMemberOfClass:[MSLayerGroup class]] || [layer isMemberOfClass:[MSArtboardGroup class]]
+}
+
+function should_ignore_layer(layer) {
+  return ![layer isVisible] || [layer name].slice(-1) == '-';
+}
+
+function sanitize_filename(name){
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","");
+}
+
+
+function has_art(layer) {
+  // return true;
+  if(is_group(layer) && !should_flatten_layer(layer)) {
+    var has_art = false;
+
     var sublayers = [layer layers];
-    for (var sub=0; sub < [sublayers length]; sub++) {
-      if (is_group(sublayers[sub])) {
-        return true;
+    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+      var sublayer = sublayers[sub];
+      if(!should_ignore_layer(sublayer) && !should_become_view(sublayer)) {
+        has_art = true;
       }
     }
-    return false;
+    return has_art;
+
   } else {
-    return false;
+    return true;
   }
 }
-function is_shape(layer) {
-  return [layer isMemberOfClass:[MSShapeGroup class]];
-}
-function sanitize_filename(name){
-  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","");
-}
-function export_layer(layer) {
-  log("Exporting " + [layer name]);
 
+function export_layer(layer, depth) {
+  log_depth("Exporting <" + [layer name] + ">", depth);
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
 
   // copy off-screen
@@ -58,27 +71,73 @@ function export_layer(layer) {
   [frame setX:-100000];
   [frame setY:-100000];
 
-  // export
-  var rect = [copy absoluteRect];
-  [doc saveArtboardOrSlice:rect toFile:filename];
+  var artnames = "";
+  var has_art = false;
+
+  // remove subgroups and only leave shapes
+  if(is_group(layer) && !should_flatten_layer(layer)) {
+    // log([layer name] + " is a group and i'm trying to extract its shapes")
+    var sublayers = [copy layers];
+    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+      var sublayer = sublayers[sub];
+      if(!should_ignore_layer(sublayer)) {
+        // log("       " + [layer name] + "." + [sublayer name] + " (" + [sublayer className] + ")");
+        if(should_become_view(sublayer)) {
+          log("     REMOVING " + [sublayer name]);
+          [sublayer removeFromParent];
+        } else {
+          log("     KEEPING " + [sublayer name]);
+          artnames += [sublayer name] + ", ";
+          has_art = true;
+        }
+      }
+
+    }
+  } else {
+    // not a group, single art
+    has_art = true;
+  }
+
+  if(!has_art) {
+    log_depth("Exporting <" + [layer name] + ">, no image", depth);
+  } else {
+    log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
+
+    // export
+    var rect = [copy absoluteRect];
+    [doc saveArtboardOrSlice:rect toFile:filename];
+  }
 
   // remove it
   [copy removeFromParent];
 }
 function should_flatten_layer(layer) {
   var name = [layer name];
-  if(name.substr(0,1) == "*") {
+  if(name.slice(-1) == "*") {
     return true;
   } else {
     return false;
   }
 }
-function process_layer(layer,metadata_container) {
 
-  // log("Processing layer <" + [layer name] + "> of type <" + [layer className] + ">");
+log_depth = function(message, depth) {
+  var padding = "";
+  for(var i=0; i<depth; i++) {
+    padding = padding + ">"
+  }
+  log(padding + " " + message);
+}
 
-  if(is_group(layer)){
-    // log("It is, indeed, a group.");
+function process_layer(layer,metadata_container,depth) {
+  if(depth > 5) { return; }
+
+  if (should_ignore_layer(layer)) {
+    log_depth("Ignoring <" + [layer name] + "> of type <" + [layer className] + ">", depth);
+    return;
+  }
+
+  if(should_become_view(layer)){
+    log_depth("Processing <" + [layer name] + "> of type <" + [layer className] + ">", depth);
     // If layer is a group, do:
 
     // - Get layer data
@@ -86,23 +145,16 @@ function process_layer(layer,metadata_container) {
     layer_data.children = [];
 
     // - Export image if layer has no subgroups
-    if (!has_children_groups(layer) || should_flatten_layer(layer)) {
-      export_layer(layer);
-    } else {
+    if (!should_flatten_layer(layer) && is_group(layer)) {
       var sublayers = [layer layers];
       // Apparently, Sketch returns child layers in reverse order (back to front),
       // so we'll loop backwards through them:
       for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
         var current = sublayers[sub];
-        // process layers even if not groups. (not sure how to do this selectively?)
-        process_layer(current,layer_data.children);
+        process_layer(current,layer_data.children,depth+1);
       }
     }
-    metadata_container.push(layer_data);
-  } else {
-    // this exports "naked" layers that are not in groups
-    var layer_data = extract_metadata_from(layer);
-    export_layer(layer);
+    export_layer(layer, depth);
     metadata_container.push(layer_data);
   }
 }
@@ -129,7 +181,7 @@ function extract_metadata_from(layer) {
     maskFrame: null
   };
 
-  if (!has_children_groups(layer) || should_flatten_layer(layer)){
+  if(has_art(layer)) {
     metadata.image = {
       path: "images/" + sanitize_filename([layer name]) + ".png",
       frame: {
@@ -140,12 +192,10 @@ function extract_metadata_from(layer) {
       }
     };
     metadata.imageType = "png";
-  } else {
-    metadata.image = null;
-    metadata.imageType = null;
+    // TODO: Find out how the modification hash is calculated in Framer.app
+    // metadata.modification = new Date();
   }
-  // TODO: Find out how the modification hash is calculated in Framer.app
-  // metadata.modification = new Date();
+
 
   return metadata;
 }
@@ -165,7 +215,6 @@ var document_path = [[doc fileURL] path].split([doc displayName])[0],
 
 function main() {
   log('#################################################################################################################################################');
-  log('Getting layer groups...');
 
   // Create folders
   [file_manager createDirectoryAtPath:target_folder withIntermediateDirectories:true attributes:nil error:nil];
@@ -177,7 +226,7 @@ function main() {
       metadata = [];
 
   for (var i=0; i < [all_layers length]; i++) {
-    process_layer(all_layers[i],metadata);
+    process_layer(all_layers[i],metadata, 0);
   }
 
   file_path = framer_folder + "/views." + document_name + ".js";
@@ -202,6 +251,9 @@ function main() {
   [task setLaunchPath:"/usr/bin/curl"];
   [task setArguments:argsArray];
   [task launch];
+
+  log('#################################################################################################################################################');
+
 
 }
 
