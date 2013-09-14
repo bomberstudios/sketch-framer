@@ -51,6 +51,7 @@ function export_layer(layer, depth) {
   [frame setY:-100000];
 
   var artnames = "";
+  var has_art = false;
 
   // remove subgroups and only leave shapes
   if(is_group(layer) && !should_flatten_layer(layer)) {
@@ -66,24 +67,28 @@ function export_layer(layer, depth) {
         } else {
           log("     KEEPING " + [sublayer name]);
           artnames += [sublayer name] + ", ";
+          has_art = true;
         }
       }
 
     }
+  } else {
+    // not a group, single art
+    has_art = true;
   }
 
-  // export
-  var rect = [copy absoluteRect];
-  [doc saveArtboardOrSlice:rect toFile:filename];
+  if(!has_art) {
+    log_depth("Exporting <" + [layer name] + ">, no image", depth);
+  } else {
+    log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
+
+    // export
+    var rect = [copy absoluteRect];
+    [doc saveArtboardOrSlice:rect toFile:filename];
+  }
 
   // remove it
   [copy removeFromParent];
-
-  if(artnames == "") {
-    log_depth("Exporting <" + [layer name] + "> without children", depth);
-  } else {
-    log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
-  }
 }
 function should_flatten_layer(layer) {
   var name = [layer name];
