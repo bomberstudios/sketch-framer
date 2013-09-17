@@ -129,7 +129,6 @@ log_depth = function(message, depth) {
 }
 
 function process_layer(layer,metadata_container,depth) {
-  if(depth > 5) { return; }
 
   if (should_ignore_layer(layer)) {
     log_depth("Ignoring <" + [layer name] + "> of type <" + [layer className] + ">", depth);
