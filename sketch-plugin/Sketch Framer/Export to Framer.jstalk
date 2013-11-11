@@ -76,8 +76,8 @@ function export_layer(layer, depth) {
     log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
 
     // export
-    var rect = [copy absoluteRect];
-    [doc saveArtboardOrSlice:rect toFile:filename];
+    var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]];
+    [doc saveArtboardOrSlice:[GKRect rectWithRect:rect] toFile:filename];
   }
 
   // remove it
@@ -135,17 +135,34 @@ function save_file_from_string(filename,the_string) {
 function get_next_id() {
   return ++id;
 }
+function calculate_offset_for(layer) {
+  var gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
+      absrect = [layer absoluteRect];
+
+  // FIXME: this returns the wrong offset if shadow are not centered, or the object has a reflection
+  return {
+    x: ([gkrect width] - [absrect width])/2,
+    y: ([gkrect height] - [absrect height])/2
+  }
+}
 function extract_metadata_from(layer) {
-  var frame = [layer frame];
+  var frame = [layer frame],
+  gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
+  absrect = [layer absoluteRect],
+  offset = calculate_offset_for(layer),
+  x = [absrect rulerX] - offset.x,
+  y = [absrect rulerY] - offset.y,
+  w = [gkrect width],
+  h = [gkrect height];
 
   //metadata.id = get_next_id(); // FIXME
   var metadata = {
     name: sanitize_filename([layer name]),
     layerFrame: {
-      x: [[layer absoluteRect] rulerX],
-      y: [[layer absoluteRect] rulerY],
-      width: [frame width],
-      height: [frame height]
+      x: x,
+      y: y,
+      width: w,
+      height: h
     },
     maskFrame: null
   };
@@ -154,10 +171,10 @@ function extract_metadata_from(layer) {
     metadata.image = {
       path: "images/" + sanitize_filename([layer name]) + ".png",
       frame: {
-        x: [[layer absoluteRect] rulerX],
-        y: [[layer absoluteRect] rulerY],
-        width: [frame width],
-        height: [frame height]
+        x: x,
+        y: y,
+        width: w,
+        height: h
       }
     };
     metadata.imageType = "png";
