@@ -135,23 +135,28 @@ function save_file_from_string(filename,the_string) {
 function get_next_id() {
   return ++id;
 }
-function calculate_offset_for(layer) {
+function calculate_real_position_for(layer) {
+
   var gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
       absrect = [layer absoluteRect];
 
-  // FIXME: this returns the wrong offset if shadow are not centered, or the object has a reflection
+  var rulerDeltaX = [absrect rulerX] - [absrect x],
+      rulerDeltaY = [absrect rulerY] - [absrect y],
+      GKRectRulerX = [gkrect x] + rulerDeltaX,
+      GKRectRulerY = [gkrect y] + rulerDeltaY;
+
   return {
-    x: ([gkrect width] - [absrect width])/2,
-    y: ([gkrect height] - [absrect height])/2
+    x: GKRectRulerX,
+    y: GKRectRulerY
   }
 }
 function extract_metadata_from(layer) {
   var frame = [layer frame],
   gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
   absrect = [layer absoluteRect],
-  offset = calculate_offset_for(layer),
-  x = [absrect rulerX] - offset.x,
-  y = [absrect rulerY] - offset.y,
+  position = calculate_real_position_for(layer),
+  x = position.x,
+  y = position.y,
   w = [gkrect width],
   h = [gkrect height];
 
@@ -181,7 +186,6 @@ function extract_metadata_from(layer) {
     // TODO: Find out how the modification hash is calculated in Framer.app
     // metadata.modification = new Date();
   }
-
 
   return metadata;
 }
