@@ -13,7 +13,7 @@ function should_ignore_layer(layer) {
   return ![layer isVisible] || [layer name].slice(-1) == '-';
 }
 function sanitize_filename(name){
-  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","");
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("&","");
 }
 function has_art(layer) {
   // return true;
@@ -45,6 +45,11 @@ function export_layer(layer, depth) {
 
   var artnames = "";
   var has_art = false;
+
+  // force visibility
+  if ( [layer name].slice(-1) == '&' ) {
+    [copy setIsVisible:true];
+  }
 
   // remove subgroups and only leave shapes
   if(is_group(layer) && !should_flatten_layer(layer)) {
