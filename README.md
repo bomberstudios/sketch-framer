@@ -27,7 +27,7 @@ git clone git@github.com:bomberstudios/sketch-framer.git
 * Every group in your document will export as individual Framer Views. To have a group flattened so its child groups don't export individually, append `*` to its name. Example: `Card*`
 * Every non-group piece of art (for ex. a shape or text layer) will export as a flat image along with its parent group. If you want to turn such a shape into a Framer View, append `+` to its name. Example: `Shape+`
 * To ignore a layer, either hide it in Sketch, or append `-` to its name. Example: `Ignored-`
-* To export a layer that's hidden, append `&` to its name. During the export process, the layer will be temporarily made visible. Example: `Invisible&`
+* To export a layer that's hidden, append `&` to its name. The layer will be hidden (visible: false) in Framer upon initialization. Example: `Invisible&`
 * Multiple artboards work funky. Ideally don't have any artboards in the document, and make sure the top left of all your contents align to (0,0)
 * Masks currently don't work. Workaround: flatten the group that includes a mask (by appending `*` to its name).
 
