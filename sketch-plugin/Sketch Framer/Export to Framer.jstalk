@@ -269,6 +269,9 @@ function main() {
 
   log('#################################################################################################################################################');
 
+  // Display message in toolbar
+  [doc showMessage: "Sketch Framer: Project exported to “" + target_folder + "”"];
+
 }
 
 /*
