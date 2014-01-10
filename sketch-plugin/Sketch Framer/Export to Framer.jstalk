@@ -208,9 +208,9 @@ function extract_metadata_from(layer) {
 
 var document_path = [[doc fileURL] path].split([doc displayName])[0],
     document_name = [doc displayName].replace(".sketch",""),
-    target_folder = document_path + "/" + document_name,
-    images_folder = document_path + "/" + document_name + "/images",
-    framer_folder = document_path + "/" + document_name + "/framer",
+    target_folder = document_path + document_name,
+    images_folder = target_folder + "/images",
+    framer_folder = target_folder + "/framer",
     file_manager = [NSFileManager defaultManager],
     id = 0,
     templates = {
