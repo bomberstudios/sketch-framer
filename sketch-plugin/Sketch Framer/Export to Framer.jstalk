@@ -366,8 +366,8 @@ function calculate_real_position_for(layer) {
       GKRectRulerY = [gkrect y] + rulerDeltaY;
 
   return {
-    x: GKRectRulerX,
-    y: GKRectRulerY
+    x: Math.round(GKRectRulerX),
+    y: Math.round(GKRectRulerY
   }
 }
 function extract_metadata_from(layer) {
