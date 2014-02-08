@@ -268,10 +268,8 @@ function export_layer(layer, depth) {
     log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
 
     // export
-    // var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
-    //     slice = [MSSlice sliceWithRect:rect scale:2];
     var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
-        slice = [GKRect rectWithRect:rect]
+        slice = [MSSlice sliceWithRect:rect scale:2];
 
     if (in_sandbox()) {
       sandboxAccess.accessFilePath_withBlock_persistPermission(target_folder, function(){
