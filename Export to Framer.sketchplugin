@@ -473,14 +473,16 @@ function main() {
   [task setArguments:argsArray];
   [task launch];
 
-  // Open HTML in default browser
-  var open_task = [[NSTask alloc] init],
-      open_task_args = [NSArray arrayWithObjects:(target_folder + "/index.html"), nil];
+  // Open HTML in default browser if it's the first time we're exporting
+  if(![file_manager fileExistsAtPath:(target_folder + "/index.html")]) {
+    var open_task = [[NSTask alloc] init],
+        open_task_args = [NSArray arrayWithObjects:(target_folder), nil];
 
-  [open_task setCurrentDirectoryPath:framer_folder];
-  [open_task setLaunchPath:"/usr/bin/open"];
-  [open_task setArguments:open_task_args];
-  [open_task launch];
+    [open_task setCurrentDirectoryPath:framer_folder];
+    [open_task setLaunchPath:"/usr/bin/open"];
+    [open_task setArguments:open_task_args];
+    [open_task launch];
+  }
 
   log('#################################################################################################################################################');
 
