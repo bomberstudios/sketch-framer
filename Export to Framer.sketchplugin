@@ -422,13 +422,8 @@ var document_path = [[doc fileURL] path].split([doc displayName])[0],
     images_folder = target_folder + "/images",
     framer_folder = target_folder + "/framer",
     file_manager = [NSFileManager defaultManager],
-    id = 0,
-    templates = {
-      "index.html": FramerIndexFileContents,
-      FramerScriptFileName: FramerScriptFileContents,
-      "framerps.js": FramerPSJSContents
-    }
-
+    id = 0
+    
 function main() {
 
   log('#################################################################################################################################################');
@@ -461,11 +456,11 @@ function main() {
 
   // Save JS files from templates:
   if(![file_manager fileExistsAtPath:(target_folder + "/index.html")]) {
-    save_file_from_string(target_folder + "/index.html",  templates["index.html"].replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
+    save_file_from_string(target_folder + "/index.html",  FramerIndexFileContents.replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
   }
-  save_file_from_string(framer_folder + "/framerps.js", templates["framerps.js"]);
+  save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
   if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
-    save_file_from_string(target_folder + "/" + FramerScriptFileName, templates[FramerScriptFileName]);
+    save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
   }
 
   // Get JS files from Github
