@@ -1,6 +1,6 @@
 LICENSE AGREEMENT FOR SKETCH-FRAMER PLUGIN
 
-Copyright (c) 2013, Ale Munoz All rights reserved.
+Copyright (c) 2013, Ale Muñoz All rights reserved.
 
 BSD-2-Clause License: http://opensource.org/licenses/BSD-2-Clause
 
