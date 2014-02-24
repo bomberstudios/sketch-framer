@@ -356,6 +356,17 @@ function save_file_from_string(filename,the_string) {
 function get_next_id() {
   return ++id;
 }
+function mask_bounds(layer) {
+  var sublayers = [layer layers];
+  for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+    var current = sublayers[sub];
+    if([current name].toLowerCase().indexOf('maskframe') != -1) {
+      return metadata_for(current);
+    }
+  }
+
+  return null;
+}
 function calculate_real_position_for(layer) {
 
   var gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
@@ -389,14 +400,15 @@ function metadata_for(layer) {
   }
 }
 function extract_metadata_from(layer) {
-  var layerFrame = metadata_for(layer);
+  var layerFrame = metadata_for(layer),
+  maskFrame = mask_bounds(layer);
   
   //metadata.id = get_next_id(); // FIXME
 
   var metadata = {
     name: sanitize_filename([layer name]),
     layerFrame: layerFrame,
-    maskFrame: null
+    maskFrame: maskFrame
   };
 
   if(has_art(layer)) {
