@@ -32,16 +32,17 @@ Then you'll see the plugin in the plugins menu:
 * Every group in your document will become a Framer view.
 
 ## Special operations
-* **Flatten** To have a group flattened so its child groups don't export individually, append `*` to its name. Example: `Card*`
-* **Shape/text layers** To export a shape or a text layer as a view, put it in a group.
+* **Flatten** To have a group flattened so its child groups don't export individually, append `*` to its name. Example: `Card*`. Flattening complex groups will improve performance.
+* **Shape/text layers** To export a shape or a text layer as a view, put it in a group. Otherwise they will export as a background image.
 * **Ignore** To ignore a layer, append `-` to its name. Example: `Ignored-`
 * **Hidden layers** Hidden layers in Sketch will be exported as hidden layers in Framer. To show the layer in framer, try `view.visible = true`
+* **Masks** Native masks don't work. Instead of making a native mask, keep the mask rectangle as a regular object, and add "maskframe" to its name. Sketch-Framer will define a mask for a group, if it has a direct child whose name includes "maskframe".
 
 ## Configuration
 You can customize the exported files (index.html, app.js) by tweaking sketch-framer-config.js. The most common thing you might want to do is import a library file and include it in all your projects.
 
 ## Known bugs
-* Masks currently don't work. Workaround: flatten the group that includes a mask (by appending `*` to its name).
+* Masks currently don't work. Workaround: flatten the group that includes a mask (by appending `*` to its name), or use the mask solution described above.
 
 
 ## Help us improve Sketch Framer
