@@ -371,7 +371,7 @@ function calculate_real_position_for(layer) {
     y: Math.round(GKRectRulerY)
   }
 }
-function extract_metadata_from(layer) {
+function metadata_for(layer) {
   var frame = [layer frame],
   gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
   absrect = [layer absoluteRect],
@@ -379,29 +379,30 @@ function extract_metadata_from(layer) {
   x = position.x,
   y = position.y,
   w = [gkrect width],
-  h = [gkrect height];
+  h = [gkrect height];  
 
+  return {
+    x: x,
+    y: y,
+    width: w,
+    height: h
+  }
+}
+function extract_metadata_from(layer) {
+  var layerFrame = metadata_for(layer);
+  
   //metadata.id = get_next_id(); // FIXME
+
   var metadata = {
     name: sanitize_filename([layer name]),
-    layerFrame: {
-      x: x,
-      y: y,
-      width: w,
-      height: h
-    },
+    layerFrame: layerFrame,
     maskFrame: null
   };
 
   if(has_art(layer)) {
     metadata.image = {
       path: "images/" + sanitize_filename([layer name]) + ".png",
-      frame: {
-        x: x,
-        y: y,
-        width: w,
-        height: h
-      }
+      frame: layerFrame
     };
     metadata.imageType = "png";
     // TODO: Find out how the modification hash is calculated in Framer.app
