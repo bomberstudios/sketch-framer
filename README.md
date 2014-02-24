@@ -8,7 +8,7 @@ A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents 
 
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
-2. Grab these two files from the ZIP: `Export to Framer.sketchcommand` and `sketch-framer-config.js`
+2. Grab these two files from the ZIP: `Export to Framer.sketchplugin` and `sketch-framer-config.js`
 3. Copy them to `~/Library/Application Support/sketch/Plugins` (if you're using the App Store version of Sketch, you need to copy them to `~/Library/Containers/com.bohemiancoding.sketch/Data/Library/Application Support/sketch/Plugins`)
 
 This is what your plugins folder should look like:
@@ -51,4 +51,4 @@ To propose changes, fork the repository and submit a pull request!
 
 ## Questions?
 
-Reach out to @bomberstudios or @gem_ray on Twitter!
+Reach out to [@bomberstudios](https://twitter.com/bomberstudios) or [@gem_ray](https://twitter.com/gem_ray) on Twitter!
