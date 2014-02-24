@@ -4,11 +4,17 @@
 
 A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents into [FramerJS](http://framerjs.com) to make interactive prototypes.
 
+**Currently only works for Sketch Beta**
+
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
-2. Unzip the file, and double click on `Export to Framer.sketchplugin`
-3. Sketch will open and install the plugin. Now you can see it in the plugins menu.
+2. Grab these two files from the ZIP: `Export to Framer.sketchcommand` and `sketch-framer-config.js`
+3. Copy them to `~/Library/Application Support/sketch/Plugins` (if you're using the App Store version of Sketch, you need to copy them to `~/Library/Containers/com.bohemiancoding.sketch/Data/Library/Application Support/sketch/Plugins`)
 
+This is what your plugins folder should look like:
+![Directory structure](https://f.cloud.github.com/assets/200566/2225432/decec214-9a8d-11e3-9482-07561a01964f.png)
+
+Then you'll see the plugin in the plugins menu:
 ![Plugins menu](https://f.cloud.github.com/assets/200566/2153606/d9fd17be-9429-11e3-9d15-674f17f9953f.png)
 
 ## Usage
@@ -31,6 +37,8 @@ A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents 
 * **Ignore** To ignore a layer, append `-` to its name. Example: `Ignored-`
 * **Hidden layers** Hidden layers in Sketch will be exported as hidden layers in Framer. To show the layer in framer, try `view.visible = true`
 
+## Configuration
+You can customize the exported files (index.html, app.js) by tweaking sketch-framer-config.js. The most common thing you might want to do is import a library file and include it in all your projects.
 
 ## Known bugs
 * Masks currently don't work. Workaround: flatten the group that includes a mask (by appending `*` to its name).
