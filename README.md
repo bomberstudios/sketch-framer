@@ -4,17 +4,21 @@
 
 A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents into [FramerJS](http://framerjs.com) to make interactive prototypes.
 
-**Currently only works for Sketch Beta**
+## Common questions
+* Only works with Sketch Beta right now because the App Store version is sandboxed. [Download Sketch Beta here](http://www.bohemiancoding.com/sketch/beta/).
+* Make sure you copy **both** files as specified below.
 
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
 2. Grab these two files from the ZIP: `Export to Framer.sketchplugin` and `sketch-framer-config.js`
 3. Copy them to `~/Library/Application Support/sketch/Plugins` (if you're using the App Store version of Sketch, you need to copy them to `~/Library/Containers/com.bohemiancoding.sketch/Data/Library/Application Support/sketch/Plugins`)
 
-This is what your plugins folder should look like:
+This is what your plugins folder should look like after you copy them:
+
 ![Directory structure](https://f.cloud.github.com/assets/200566/2225432/decec214-9a8d-11e3-9482-07561a01964f.png)
 
 Then you'll see the plugin in the plugins menu:
+
 ![Plugins menu](https://f.cloud.github.com/assets/200566/2153606/d9fd17be-9429-11e3-9d15-674f17f9953f.png)
 
 ## Usage
