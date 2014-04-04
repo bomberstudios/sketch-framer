@@ -468,9 +468,6 @@ function main() {
   save_file_from_string(file_path,file_contents);
 
   // Save JS files from templates:
-  if(![file_manager fileExistsAtPath:(target_folder + "/index.html")]) {
-    save_file_from_string(target_folder + "/index.html",  FramerIndexFileContents.replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
-  }
   save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
   if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
     save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
@@ -485,7 +482,7 @@ function main() {
   [task launch];
 
   // Get library files if one if configured and isn't yet downloaded
-  if(FramerLibraryUrl) {    
+  if(FramerLibraryUrl) {
     if(![file_manager fileExistsAtPath:(framer_folder + "/" + FramerLibraryFileName)]) {
       var task2 = [[NSTask alloc] init],
           argsArray = [NSArray arrayWithObjects:"-O", FramerLibraryUrl, nil];
@@ -493,14 +490,14 @@ function main() {
       [task2 setLaunchPath:"/usr/bin/curl"];
       [task2 setArguments:argsArray];
       [task2 launch];
-    }  
+    }
   }
-  
 
-  // Open HTML in default browser if it's the first time we're exporting
+  // Create HTML and open in default browser if it's the first time we're exporting
   if(![file_manager fileExistsAtPath:(target_folder + "/index.html")]) {
+    save_file_from_string(target_folder + "/index.html",  FramerIndexFileContents.replace("{{ views }}",'<script src="framer/views.' + document_name + '.js"></script>'));
     var open_task = [[NSTask alloc] init],
-        open_task_args = [NSArray arrayWithObjects:(target_folder), nil];
+        open_task_args = [NSArray arrayWithObjects:(target_folder + "/index.html"), nil];
 
     [open_task setCurrentDirectoryPath:framer_folder];
     [open_task setLaunchPath:"/usr/bin/open"];
