@@ -238,7 +238,7 @@ function export_layer(layer, depth) {
   [frame setX:-100000];
   [frame setY:-100000];
 
-  var artnames = "";
+  var artnames = [];
   var has_art = false;
 
   // remove subgroups and only leave shapes
@@ -254,8 +254,8 @@ function export_layer(layer, depth) {
           [sublayer removeFromParent];
         } else {
           log("     KEEPING " + [sublayer name]);
-          artnames += [sublayer name] + ", ";
-          has_art = true;
+          artnames.push([sublayer name])
+          has_art = true
         }
       }
 
@@ -268,7 +268,7 @@ function export_layer(layer, depth) {
   if(!has_art) {
     log_depth("Exporting <" + [layer name] + ">, no image", depth);
   } else {
-    log_depth("Exporting <" + [layer name] + "> including children art " + artnames, depth);
+    log_depth("Exporting <" + [layer name] + "> including children art (" + artnames.join(", ") + ")", depth);
 
     // export
     var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
