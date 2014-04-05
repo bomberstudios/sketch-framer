@@ -384,20 +384,41 @@ function calculate_real_position_for(layer) {
 }
 function metadata_for(layer) {
   var frame = [layer frame],
-  gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
-  absrect = [layer absoluteRect],
-  position = calculate_real_position_for(layer),
-  x = position.x,
-  y = position.y,
-  w = [gkrect width],
-  h = [gkrect height];  
+      gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
+      absrect = [layer absoluteRect],
+      position = calculate_real_position_for(layer),
+      x,y,w,h,r
 
-  return {
-    x: x,
-    y: y,
-    width: w,
-    height: h
-  }
+      if ([layer className] == "MSArtboardGroup") {
+        // FIXME: This is probably still wrong, test with different artboard positions
+        x = [[layer absoluteRect] rulerX],
+        y = [[layer absoluteRect] rulerY],
+        // x = position.x,
+        // y = position.y,
+        w = [frame width],
+        h = [frame height],
+        r = {
+          x: x,
+          y: y,
+          width: w,
+          height: h
+        }
+      } else {
+        x = position.x,
+        y = position.y,
+        w = [gkrect width],
+        h = [gkrect height],
+        r = {
+          x: x,
+          y: y,
+          width: w,
+          height: h
+        }
+      }
+
+  log("{ x:"+x+", y:"+y+", width:"+w+", height:"+h+"}")
+
+  return r
 }
 function extract_metadata_from(layer) {
   var layerFrame = metadata_for(layer),
