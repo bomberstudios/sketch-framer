@@ -228,64 +228,6 @@ function has_art(layer) {
     return true;
   }
 }
-function export_layer(layer, depth) {
-  log_depth("Exporting <" + [layer name] + ">", depth);
-  var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
-
-  // copy off-screen
-  var copy = [layer duplicate];
-  var frame = [copy frame];
-  [frame setX:-100000];
-  [frame setY:-100000];
-
-  var artnames = [];
-  var has_art = false;
-
-  // remove subgroups and only leave shapes
-  if(is_group(layer) && !should_flatten_layer(layer)) {
-    // log([layer name] + " is a group and i'm trying to extract its shapes")
-    var sublayers = [copy layers];
-    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-      var sublayer = sublayers[sub];
-      if(!should_ignore_layer(sublayer)) {
-        // log("       " + [layer name] + "." + [sublayer name] + " (" + [sublayer className] + ")");
-        if(should_become_view(sublayer)) {
-          log("     REMOVING " + [sublayer name]);
-          [sublayer removeFromParent];
-        } else {
-          log("     KEEPING " + [sublayer name]);
-          artnames.push([sublayer name])
-          has_art = true
-        }
-      }
-
-    }
-  } else {
-    // not a group, single art
-    has_art = true;
-  }
-
-  if(!has_art) {
-    log_depth("Exporting <" + [layer name] + ">, no image", depth);
-  } else {
-    log_depth("Exporting <" + [layer name] + "> including children art (" + artnames.join(", ") + ")", depth);
-
-    // export
-    var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
-        slice = [MSSlice sliceWithRect:rect scale:2];
-
-    if (in_sandbox()) {
-      sandboxAccess.accessFilePath_withBlock_persistPermission(target_folder, function(){
-        [doc saveArtboardOrSlice:slice toFile:filename];
-      }, true)
-    } else {
-      [doc saveArtboardOrSlice:slice toFile:filename];
-    }
-  }
-
-  // remove it
-  [copy removeFromParent];
-}
 function should_flatten_layer(layer) {
   var name = [layer name];
   if(name.slice(-1) == "*") {
@@ -297,51 +239,13 @@ function should_flatten_layer(layer) {
 function log_depth(message, depth) {
   var padding = "";
   for(var i=0; i<depth; i++) {
-    padding = padding + ">"
+    padding += ">"
   }
   log(padding + " " + message);
 }
-function process_layer(layer,metadata_container,depth) {
 
-  if (should_ignore_layer(layer)) {
-    log_depth("Ignoring <" + [layer name] + "> of type <" + [layer className] + ">", depth);
-    return;
-  }
-
-  if(should_become_view(layer)){
-    log_depth("Processing <" + [layer name] + "> of type <" + [layer className] + ">", depth);
-    // If layer is a group, do:
-
-    // temporarily show it
-    if (![layer isVisible]) {
-      [layer setName:[layer name] + "&"]
-    }
-    [layer setIsVisible:true];
-
-    // - Get layer data
-    var layer_data = extract_metadata_from(layer);
-    layer_data.children = [];
-
-    // - Export image if layer has no subgroups
-    if (!should_flatten_layer(layer) && is_group(layer)) {
-      var sublayers = [layer layers];
-      // Apparently, Sketch returns child layers in reverse order (back to front),
-      // so we'll loop backwards through them:
-      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-        var current = sublayers[sub];
-        process_layer(current,layer_data.children,depth+1);
-      }
-    }
-    export_layer(layer, depth);
-    metadata_container.push(layer_data);
-
-    if ([layer name].slice(-1) == '&') {
-      [layer setIsVisible:false];
-      [layer setName:[layer name].slice(0, -1)];
-    }
-  }
-}
 function save_file_from_string(filename,the_string) {
+  log("save_file_from_string("+filename+")")
   var path = [@"" stringByAppendingString:filename],
       str = [@"" stringByAppendingString:the_string];
 
@@ -353,9 +257,7 @@ function save_file_from_string(filename,the_string) {
     [str writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:null];
   }
 }
-function get_next_id() {
-  return ++id;
-}
+
 function mask_bounds(layer) {
   var sublayers = [layer layers];
   for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
@@ -383,6 +285,7 @@ function calculate_real_position_for(layer) {
   }
 }
 function metadata_for(layer) {
+  log("metadata_for("+layer+")")
   var frame = [layer frame],
       gkrect = [GKRect rectWithRect:[layer rectByAccountingForStyleSize:[[layer absoluteRect] rect]]],
       absrect = [layer absoluteRect],
@@ -393,8 +296,6 @@ function metadata_for(layer) {
         // FIXME: This is probably still wrong, test with different artboard positions
         x = [[layer absoluteRect] rulerX],
         y = [[layer absoluteRect] rulerY],
-        // x = position.x,
-        // y = position.y,
         w = [frame width],
         h = [frame height],
         r = {
@@ -416,21 +317,28 @@ function metadata_for(layer) {
         }
       }
 
-  log("{ x:"+x+", y:"+y+", width:"+w+", height:"+h+"}")
+  log(JSON.stringify(r))
 
   return r
 }
 function extract_metadata_from(layer) {
-  var layerFrame = metadata_for(layer),
-  maskFrame = mask_bounds(layer);
-  
-  //metadata.id = get_next_id(); // FIXME
+  log("extract_metadata_from("+layer+")")
+  var layerFrame = metadata_for(layer)
+  log(layerFrame)
+  var maskFrame = mask_bounds(layer)
+  log("maskFrame: " + maskFrame)
+  if(maskFrame){
+    log(JSON.stringify(maskFrame))
+  }
 
   var metadata = {
     name: sanitize_filename([layer name]),
-    layerFrame: layerFrame,
-    maskFrame: maskFrame
-  };
+    layerFrame: layerFrame
+    // id: [layer objectID]
+  }
+  if (maskFrame) {
+    metadata.maskFrame = maskFrame
+  }
 
   if(has_art(layer)) {
     metadata.image = {
@@ -450,48 +358,106 @@ function extract_metadata_from(layer) {
   return metadata;
 }
 
-var document_path = [[doc fileURL] path].split([doc displayName])[0],
-    document_name = [doc displayName].replace(".sketch",""),
-    target_folder = document_path + document_name,
-    images_folder = target_folder + "/images",
-    framer_folder = target_folder + "/framer",
-    file_manager = [NSFileManager defaultManager],
-    id = 0
-    
-function main() {
-
-  log('#################################################################################################################################################');
-
-  // Create folders
+function make_folder(path){
   if (in_sandbox()) {
-    sandboxAccess.accessFilePath_withBlock_persistPermission(target_folder, function(){
-      [file_manager createDirectoryAtPath:target_folder withIntermediateDirectories:true attributes:nil error:nil];
-      [file_manager createDirectoryAtPath:images_folder withIntermediateDirectories:true attributes:nil error:nil];
-      [file_manager createDirectoryAtPath:framer_folder withIntermediateDirectories:true attributes:nil error:nil];
-    }, true)
+    sandboxAccess.accessFilePath_withBlock_persistPermission(path, function(){
+      [file_manager createDirectoryAtPath:path withIntermediateDirectories:true attributes:nil error:nil];
+    },true)
   } else {
-    [file_manager createDirectoryAtPath:target_folder withIntermediateDirectories:true attributes:nil error:nil];
-    [file_manager createDirectoryAtPath:images_folder withIntermediateDirectories:true attributes:nil error:nil];
-    [file_manager createDirectoryAtPath:framer_folder withIntermediateDirectories:true attributes:nil error:nil];
+    [file_manager createDirectoryAtPath:path withIntermediateDirectories:true attributes:nil error:nil];
   }
+}
+function make_folders(){
+  // Create folders
+  var folders = [target_folder,images_folder,framer_folder]
+  for (var i = 0; i < folders.length; i++) {
+    make_folder(folders[i])
+  }
+}
 
-  // Get all layers in current page
-  var all_layers = [[doc currentPage] layers],
-      metadata = [];
+function process_all_layers(){
+  var all_layers = [[doc currentPage] layers]
 
   for (var i=0; i < [all_layers length]; i++) {
-    process_layer(all_layers[i],metadata, 0);
+    process_layer(all_layers[i],project_metadata, 0);
+  }
+}
+function process_layer(layer,metadata_container,depth) {
+  log("Processing layer: " + layer)
+  log("Metadata Container: " + metadata_container)
+  depth++
+
+  if(should_ignore_layer(layer)) {
+    log_depth("Ignoring <" + [layer name] + "> of type <" + [layer className] + ">", depth)
+    return;
   }
 
-  file_path = framer_folder + "/views." + document_name + ".js";
+  if(should_become_view(layer)){
+    log_depth("Processing <" + [layer name] + "> of type <" + [layer className] + ">", depth)
 
-  var file_contents = "window.FramerPS = window.FramerPS || {};\nwindow.FramerPS['" + document_name +"'] = " + JSON.stringify(metadata,null,2);
+    if (![layer isVisible]) {
+      log_depth("Temporarily showing " + layer,depth)
+      [layer setName:[layer name] + "&"]
+    }
+    [layer setIsVisible:true]
+
+    // Get layer data
+    var layer_data = extract_metadata_from(layer)
+    layer_data.children = []
+
+    // Export image if layer has no subgroups
+    if (!should_flatten_layer(layer) && is_group(layer)) {
+      var sublayers = [layer layers];
+      // Apparently, Sketch returns child layers in reverse order (back to front),
+      // so we'll loop backwards through them:
+      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+        var current = sublayers[sub];
+        process_layer(current,layer_data.children,depth+1);
+      }
+    }
+    if ([layer className] == "MSArtboardGroup") {
+      export_artboard(layer)
+    } else {
+      if ([NSApp applicationVersion] >= 3) {
+        export_isolated_layer_v3(layer,images_folder + "/" + sanitize_filename([layer name]) + ".png")
+      } else {
+        export_isolated_layer_v2(layer,images_folder + "/" + sanitize_filename([layer name]) + ".png")
+      }
+    }
+
+    // FIXME: why is this here? Still needed?
+    // if(should_flatten_layer(layer)){
+    //   duplicate_and_export(layer)
+    // }
+    metadata_container.push(layer_data);
+
+    if ([layer name].slice(-1) == '&') {
+      log("Restore visibility for " + [layer name])
+      [layer setName:[layer name].slice(0, -1)];
+      [layer setIsVisible:false]
+      // Small hack: this forces a redraw
+      [layer resetPointsBasedOnUserInteraction]
+    }
+    log([layer isVisible])
+  }
+}
+
+function create_files(metadata){
+  log("create_files("+metadata+")")
+  var file_path = framer_folder + "/views." + document_name + ".js";
+  log(JSON.stringify(metadata))
+  var file_contents = "window.FramerPS = window.FramerPS || {};\nwindow.FramerPS['" + document_name +"'] = " + JSON.stringify(metadata,null,2)
   save_file_from_string(file_path,file_contents);
 
-  // Save JS files from templates:
-  save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
-  if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
-    save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
+  log(framer_folder)
+  try {
+    // Save JS files from templates:
+    save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
+    if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
+      save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
+    }
+  } catch(e) {
+    log(e)
   }
 
   // Get JS files from Github
@@ -525,9 +491,132 @@ function main() {
     [open_task setArguments:open_task_args];
     [open_task launch];
   }
+}
+function export_isolated_layer_v3(layer,filename){
+  // Select layer, so we can be sure there's a current artboard
+  [layer select:true byExpandingSelection:false]
 
-  log('#################################################################################################################################################');
+  // (if there is, indeed, an artboard, that is :)
+  if([[[doc currentPage] artboards] count] > 0){
+    log("Here be artboards")
+    var art = [[doc currentPage] currentArtboard],
+        did_disable_background = false
+    if([art includeBackgroundColorInExport]){
+      log("Artboard has a background color set to export, so we'll momentarily disable it")
+      [art setIncludeBackgroundColorInExport:false]
+      did_disable_background = true
+    }
+  }
 
+  var filename = [@"" stringByAppendingString:filename]
+  var slice = [[MSSliceMaker slicesFromExportableLayer:layer] firstObject]
+  slice.page = [doc currentPage]
+  var imageData = [MSSliceExporter dataForSlice:slice format:@"png"]
+  if (in_sandbox()) {
+    sandboxAccess.accessFilePath_withBlock_persistPermission([filename stringByDeletingLastPathComponent], function(){
+      [imageData writeToFile:filename atomically:YES]
+    }, true)
+  } else {
+    [imageData writeToFile:filename atomically:YES]
+  }
+
+  if (did_disable_background) {
+    [art setIncludeBackgroundColorInExport:true]
+  }
+}
+function export_isolated_layer_v2(layer,filename){
+  var filename = [@"" stringByAppendingString:filename]
+  var copy = [layer duplicate]
+  [[copy frame] setX:-100000]
+
+  var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
+      slice = [GKRect rectWithRect:rect]
+
+  if (in_sandbox()) {
+    sandboxAccess.accessFilePath_withBlock_persistPermission([filename stringByDeletingLastPathComponent], function(){
+      [doc saveArtboardOrSlice:slice toFile:filename];
+    }, true)
+  } else {
+    [doc saveArtboardOrSlice:slice toFile:filename];
+  }
+
+  [copy removeFromParent]
+}
+function export_artboard(layer){
+  log_depth("Exporting artboard: <" + [layer name] + ">");
+  var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png",
+      hidden_sublayers = []
+
+  var artnames = [],
+      has_art = false;
+
+  // Remove subgroups and only leave shapes
+  if(is_group(layer) && !should_flatten_layer(layer)) {
+    var sublayers = [layer layers]
+
+    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+      var sublayer = sublayers[sub];
+      if(should_become_view(sublayer) || should_ignore_layer(sublayer)) {
+        log("     REMOVING " + [sublayer name])
+        [sublayer setIsVisible:false]
+        hidden_sublayers.push(sublayer)
+      } else {
+        log("     KEEPING " + [sublayer name]);
+        artnames.push([sublayer name])
+        has_art = true
+      }
+    }
+  } else {
+    // not a group, single art
+    has_art = true;
+  }
+
+  // Export
+  if(!has_art) {
+    log("Exporting <" + [layer name] + ">, no image");
+  } else {
+    log("Exporting <" + [layer name] + "> including children art (" + artnames.join(", ") + ")");
+
+    var slice = [MSSlice sliceWithRect:[[layer absoluteRect] rect] scale:2]
+
+    if (in_sandbox()) {
+      sandboxAccess.accessFilePath_withBlock_persistPermission([filename stringByDeletingLastPathComponent], function(){
+        [doc saveArtboardOrSlice:slice toFile:filename];
+      }, true)
+    } else {
+      [doc saveArtboardOrSlice:slice toFile:filename];
+    }
+  }
+  // Restore
+  log("Restoring formerly visible elements: " + hidden_sublayers.length)
+  if(hidden_sublayers.length > 0){
+    for (var i = 0; i < hidden_sublayers.length; i++) {
+      var l = hidden_sublayers[i]
+      [l setIsVisible:true]
+    }
+    hidden_sublayers = []
+  }
+}
+
+
+var document_path = [[doc fileURL] path].split([doc displayName])[0],
+    document_name = [doc displayName].replace(".sketch",""),
+    target_folder = document_path + document_name,
+    images_folder = target_folder + "/images",
+    framer_folder = target_folder + "/framer",
+    file_manager = [NSFileManager defaultManager],
+    invisible_layers = [],
+    project_metadata = []
+
+function main() {
+
+  log('########################################################################');
+
+  make_folders()
+  process_all_layers()
+  create_files(project_metadata)
+
+  [[doc currentPage] deselectAllLayers]
   // Display message in toolbar
   [doc showMessage: "Sketch Framer: Project exported to “" + target_folder + "”"];
 
@@ -550,6 +639,7 @@ as it uses an API not available in earlier versions
 // TODO: Calculate proper IDs (not sure what they're used for, but hey...)
 // TODO: Calculate proper modification hash
 // TODO: Embed framer.js on this file, instead of 'curl'ing it from Github
+// TODO: Multiple Artboards support
 
 */
 
