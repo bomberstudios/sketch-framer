@@ -37,7 +37,7 @@ Then you'll see the plugin in the plugins menu:
 
 ## Special operations
 * **Flatten** To have a group flattened so its child groups don't export individually, append `*` to its name. Example: `Card*`. Flattening complex groups will improve performance.
-* **Shape/text layers** To export a shape or a text layer as a view, put it in a group. Otherwise they will export as a background image.
+* **Shape/text layers** To export a shape or a text layer as a view, put it in a group, or append `+` to its name. Otherwise they will export as a background image.
 * **Ignore** To ignore a layer, append `-` to its name. Example: `Ignored-`
 * **Hidden layers** Hidden layers in Sketch will be exported as hidden layers in Framer. To show the layer in framer, try `view.visible = true`
 * **Masks** Native masks don't work. Instead of making a native mask, keep the mask rectangle as a regular object, and add "maskframe" to its name. Sketch-Framer will define a mask for a group, if it has a direct child whose name includes "maskframe".
