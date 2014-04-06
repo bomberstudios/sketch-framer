@@ -205,7 +205,7 @@ function is_group(layer) {
   return [layer isMemberOfClass:[MSLayerGroup class]] || [layer isMemberOfClass:[MSArtboardGroup class]]
 }
 function should_ignore_layer(layer) {
-  return [layer name].slice(-1) == '-';
+  return [layer name].slice(-1) == '-' || [layer className] == "MSPage";
 }
 function sanitize_filename(name){
   return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("&","");
