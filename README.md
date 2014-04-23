@@ -7,6 +7,7 @@ A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents 
 ## Common questions
 * Only works with Sketch Beta right now because the App Store version is sandboxed. [Download Sketch Beta here](http://www.bohemiancoding.com/sketch/beta/).
 * Make sure you copy **both** files as specified below.
+* **Sketch 3**: Artboards aren't supported yet. Please ungroup your artboard and have elements directly on the canvas. We suggest you group everything at top level, and move it to 0,0 position.
 
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
