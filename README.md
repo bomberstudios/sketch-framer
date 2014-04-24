@@ -7,7 +7,13 @@ A plugin to export [Sketch.app](http://www.bohemiancoding.com/sketch) documents 
 ## Common questions
 * Only works with Sketch Beta right now because the App Store version is sandboxed. [Download Sketch Beta here](http://www.bohemiancoding.com/sketch/beta/).
 * Make sure you copy **both** files as specified below.
-* **Sketch 3**: Artboards aren't supported yet. Please ungroup your artboard and have elements directly on the canvas. We suggest you group everything at top level, and move it to 0,0 position.
+
+
+## Sketch 3 Support
+We're hard at work updating the plugin for Sketch 3! You can use the plugin with a few caveats:
+
+* Artboards aren't supported yet. Please ungroup your artboard and have elements directly on the canvas. We suggest you group everything at top level, and move the parent group to 0,0 position.
+* Symbols aren't supported. We suggest making a copy of your file, going to *Manage Symbols* and deleting the symbols, which will effectively detach all the symbol layers from the symbol (but keep them on the canvas).
 
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
@@ -47,7 +53,10 @@ Then you'll see the plugin in the plugins menu:
 You can customize the exported files (index.html, app.js) by tweaking sketch-framer-config.js. The most common thing you might want to do is import a library file and include it in all your projects.
 
 ## Known bugs
-* Masks currently don't work. Workaround: flatten the group that includes a mask (by appending `*` to its name), or use the mask solution described above.
+* Very complicated files may cause the plugin to crash, or result in a sluggish Framer mockup. Flatten groups (by appending `*` to their names) where you don't need to access the contents individually.
+* Masks don't work natively. Use the workaround described above.
+* Effects that expand beyond the boundaries of a layer (eg. drop shadows, outside borders) cause minor positioning bugs. Try flattening these layers, or inserting a transparent bounding rectangle behind them.
+* Avoid background blur, it causes bugs in positioning.
 
 
 ## Help us improve Sketch Framer
