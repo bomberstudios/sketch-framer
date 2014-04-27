@@ -340,6 +340,12 @@ function process_layer(layer,metadata_container,depth) {
       [layer setName:[layer name].slice(0, -1)];
     }
   }
+
+  if ([layer name].indexOf("@@mask") != -1) {
+    var _name = [layer name].replace("@@mask", "");
+    [layer setHasClippingMask:true];
+    [layer setName:_name];
+  }
 }
 function save_file_from_string(filename,the_string) {
   var path = [@"" stringByAppendingString:filename],
@@ -360,7 +366,11 @@ function mask_bounds(layer) {
   var sublayers = [layer layers];
   for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
     var current = sublayers[sub];
-    if([current name].toLowerCase().indexOf('maskframe') != -1) {
+    if(current && [current hasClippingMask]) {
+      // If a native mask is detected, rename it and disable it (for now) so we can export its contents
+      var _name = [current name] + "@@mask";
+      [current setName:_name];
+      [current setHasClippingMask:false];
       return metadata_for(current);
     }
   }
@@ -421,8 +431,9 @@ function metadata_for(layer) {
   return r
 }
 function extract_metadata_from(layer) {
-  var layerFrame = metadata_for(layer),
-  maskFrame = mask_bounds(layer);
+  var maskFrame = mask_bounds(layer);
+  var layerFrame = metadata_for(layer);
+  // call maskframe first so it disables the mask, so we can get correct layerframe
   
   //metadata.id = get_next_id(); // FIXME
 
