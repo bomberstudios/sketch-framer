@@ -47,15 +47,15 @@ Then you'll see the plugin in the plugins menu:
 * **Shape/text layers** To export a shape or a text layer as a view, put it in a group, or append `+` to its name. Otherwise they will export as a background image.
 * **Ignore** To ignore a layer, append `-` to its name. Example: `Ignored-`
 * **Hidden layers** Hidden layers in Sketch will be exported as hidden layers in Framer. To show the layer in framer, try `view.visible = true`
-* **Masks** Native masks don't work. Instead of making a native mask, keep the mask rectangle as a regular object, and add "maskframe" to its name. Sketch-Framer will define a mask for a group, if it has a direct child whose name includes "maskframe".
+* **Masks** Native masks now work! You can also use `Scroll` in the name of a group that includes a mask to make that group scrollable.
 
 ## Configuration
 You can customize the exported files (index.html, app.js) by tweaking sketch-framer-config.js. The most common thing you might want to do is import a library file and include it in all your projects.
 
 ## Known bugs
 * Very complicated files may cause the plugin to crash, or result in a sluggish Framer mockup. Flatten groups (by appending `*` to their names) where you don't need to access the contents individually.
-* Masks don't work natively. Use the workaround described above.
-* Effects that expand beyond the boundaries of a layer (eg. drop shadows, outside borders) cause minor positioning bugs. Try flattening these layers, or inserting a transparent bounding rectangle behind them.
+* Only rectangular masks work. If you're masking with an odd shape, try flattening the group (by appending `*` to its name)
+* Effects that expand beyond the boundaries of a layer (eg. drop shadows, outside borders) cause minor positioning bugs. Try flattening these layers to bitmaps.
 * Avoid background blur, it causes bugs in positioning.
 
 
