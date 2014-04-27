@@ -208,7 +208,7 @@ function should_ignore_layer(layer) {
   return [layer name].slice(-1) == '-' || [layer className] == "MSPage";
 }
 function sanitize_filename(name){
-  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("&","");
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("@@hidden","");
 }
 function has_art(layer) {
   // return true;
@@ -314,7 +314,7 @@ function process_layer(layer,metadata_container,depth) {
 
     // temporarily show it
     if (![layer isVisible]) {
-      [layer setName:[layer name] + "&"]
+      [layer setName:[layer name] + "@@hidden"]
     }
     [layer setIsVisible:true];
 
@@ -335,9 +335,11 @@ function process_layer(layer,metadata_container,depth) {
     export_layer(layer, depth);
     metadata_container.push(layer_data);
 
-    if ([layer name].slice(-1) == '&') {
+    if ([layer name].indexOf("@@hidden") != -1) {
+      // If it was hidden, make it hidden again and fix the name
+      var _name = [layer name].replace("@@hidden", "");
       [layer setIsVisible:false];
-      [layer setName:[layer name].slice(0, -1)];
+      [layer setName:_name];
     }
   }
 
@@ -454,7 +456,7 @@ function extract_metadata_from(layer) {
   }
 
   // if it was invisible, mark this in the metadata as well
-  if ([layer name].slice(-1) == '&') {
+  if ([layer name].indexOf("@@hidden") != -1) {
     metadata.visible = false
   }
 
