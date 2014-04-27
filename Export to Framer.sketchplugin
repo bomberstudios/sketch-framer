@@ -196,7 +196,7 @@ var sandboxAccess = AppSandboxFileAccess.init({
 
 
 /* Configuration */
-var framerjs_url = "https://raw.github.com/koenbok/Framer/master/build/framer.js";
+var framerjs_url = "http://rawgit.com/koenbok/Framer/master/build/framer.js";
 
 function should_become_view(layer) {
   return is_group(layer) || [layer name].slice(-1) == '+';
@@ -208,7 +208,7 @@ function should_ignore_layer(layer) {
   return [layer name].slice(-1) == '-' || [layer className] == "MSPage";
 }
 function sanitize_filename(name){
-  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("&","");
+  return name.replace(/(\s|:|\/)/g ,"_").replace(/__/g,"_").replace("*","").replace("+","").replace("@@hidden","");
 }
 function has_art(layer) {
   // return true;
@@ -314,7 +314,7 @@ function process_layer(layer,metadata_container,depth) {
 
     // temporarily show it
     if (![layer isVisible]) {
-      [layer setName:[layer name] + "&"]
+      [layer setName:[layer name] + "@@hidden"]
     }
     [layer setIsVisible:true];
 
@@ -335,10 +335,19 @@ function process_layer(layer,metadata_container,depth) {
     export_layer(layer, depth);
     metadata_container.push(layer_data);
 
-    if ([layer name].slice(-1) == '&') {
+    if ([layer name].indexOf("@@hidden") != -1) {
+      // If it was hidden, make it hidden again and fix the name
+      var _name = [layer name].replace("@@hidden", "");
       [layer setIsVisible:false];
-      [layer setName:[layer name].slice(0, -1)];
+      [layer setName:_name];
     }
+  }
+
+  if ([layer name].indexOf("@@mask") != -1) {
+    var _name = [layer name].replace("@@mask", "");
+    log("Re-enabling mask " + _name);
+    [layer setHasClippingMask:true];
+    [layer setName:_name];
   }
 }
 function save_file_from_string(filename,the_string) {
@@ -358,14 +367,30 @@ function get_next_id() {
 }
 function mask_bounds(layer) {
   var sublayers = [layer layers];
-  for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
+  var effective_mask = null;
+
+  for (var sub=0; sub < [sublayers length]; sub++) {
     var current = sublayers[sub];
-    if([current name].toLowerCase().indexOf('maskframe') != -1) {
-      return metadata_for(current);
+    if(current && [current hasClippingMask]) {
+      // If a native mask is detected, rename it and disable it (for now) so we can export its contents
+      var _name = [current name] + "@@mask";
+      [current setName:_name];
+      [current setHasClippingMask:false];
+      log("Disabling mask " + [current name]);
+
+      if (!effective_mask) {
+        // Only the bottom-most one will be effective
+        log("Effective mask " + _name)
+        effective_mask = current
+      }
     }
   }
 
-  return null;
+  if (effective_mask) {
+    return metadata_for(effective_mask);
+  } else {
+    return null;
+  }
 }
 function calculate_real_position_for(layer) {
 
@@ -421,8 +446,9 @@ function metadata_for(layer) {
   return r
 }
 function extract_metadata_from(layer) {
-  var layerFrame = metadata_for(layer),
-  maskFrame = mask_bounds(layer);
+  var maskFrame = mask_bounds(layer);
+  var layerFrame = metadata_for(layer);
+  // call maskframe first so it disables the mask, so we can get correct layerframe
   
   //metadata.id = get_next_id(); // FIXME
 
@@ -443,7 +469,7 @@ function extract_metadata_from(layer) {
   }
 
   // if it was invisible, mark this in the metadata as well
-  if ([layer name].slice(-1) == '&') {
+  if ([layer name].indexOf("@@hidden") != -1) {
     metadata.visible = false
   }
 
