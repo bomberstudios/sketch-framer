@@ -196,7 +196,7 @@ var sandboxAccess = AppSandboxFileAccess.init({
 
 
 /* Configuration */
-var framerjs_url = "https://raw.github.com/koenbok/Framer/master/build/framer.js";
+var framerjs_url = "http://rawgit.com/koenbok/Framer/master/build/framer.js";
 
 function should_become_view(layer) {
   return is_group(layer) || [layer name].slice(-1) == '+';
