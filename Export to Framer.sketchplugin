@@ -195,8 +195,17 @@ var sandboxAccess = AppSandboxFileAccess.init({
 })
 
 
+if (show_errors && in_sandbox()) {
+  [[NSApplication sharedApplication] displayDialog:"Please use this plugin with Sketch Beta. You can search 'Sketch Beta' in Google to download it.\n\n(Or manually copy framer.js info the framer folder)." withTitle:"Sketch Framer known bugs"]
+}
+
+
 /* Configuration */
 var framerjs_url = "http://rawgit.com/koenbok/Framer/master/build/framer.js";
+
+function major_version() {
+  return [NSApp applicationVersion].substr(0,1);
+}
 
 function should_become_view(layer) {
   return is_group(layer) || [layer name].slice(-1) == '+';
@@ -212,6 +221,7 @@ function sanitize_filename(name){
 }
 function has_art(layer) {
   // return true;
+
   if(is_group(layer) && !should_flatten_layer(layer)) {
     var has_art = false;
 
@@ -231,6 +241,10 @@ function has_art(layer) {
 function export_layer(layer, depth) {
   log_depth("Exporting <" + [layer name] + ">", depth);
   var filename = images_folder + "/" + sanitize_filename([layer name]) + ".png";
+
+  if(show_errors && [layer isMemberOfClass:[MSArtboardGroup class]] && major_version == 3) {
+    [[NSApplication sharedApplication] displayDialog:"Sketch Framer currently doesn't support artboards with Sketch 3. Please remove the artboard and have layers directly on the canvas. You can group everything at the top level and move it to (0,0) for intended results." withTitle:"Sketch Framer known bugs"]
+  }
 
   // copy off-screen
   var copy = [layer duplicate];
