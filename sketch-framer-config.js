@@ -13,7 +13,7 @@
 */
 
 var FramerLibraryUrl;
-
+var show_errors = true;
 
 
 
