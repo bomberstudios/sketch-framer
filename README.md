@@ -18,7 +18,7 @@ We're hard at work updating the plugin for Sketch 3! You can use the plugin with
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
 2. Grab these two files from the ZIP: `Export to Framer.sketchplugin` and `sketch-framer-config.js`
-3. Copy them to `~/Library/Application Support/sketch/Plugins` (if you're using the App Store version of Sketch, you need to copy them to `~/Library/Containers/com.bohemiancoding.sketch/Data/Library/Application Support/sketch/Plugins`)
+3. In Sketch 3, select `Plugins > Reveal Plugins Folder...` from the menu bar, and put the two files in this folder.
 
 This is what your plugins folder should look like after you copy them:
 
@@ -36,11 +36,10 @@ Then you'll see the plugin in the plugins menu:
 ![Exported files](https://f.cloud.github.com/assets/200566/2153636/3be2cbf4-942a-11e3-9def-01dc19d83324.png)
 
 ## Tips
-* Use only one artboard, or no artboards.
-* Make sure the top left of all your contents align to (0,0)
-* Use unique names for each group in your document to avoid conflicts.
-* Grouping everything in your document in a main "phone" group might help.
-* Every group in your document will become a Framer view.
+* Don't use artboards (Known bug, trying to fix it)
+* Group everything in your document in a main "Phone" group, and align it to (0,0)
+* Use unique names for each group in your document to avoid conflicts
+* Every group in your document will become a Framer view
 
 ## Special operations
 * **Flatten** To have a group flattened so its child groups don't export individually, append `*` to its name. Example: `Card*`. Flattening complex groups will improve performance.
@@ -53,7 +52,7 @@ Then you'll see the plugin in the plugins menu:
 You can customize the exported files (index.html, app.js) by tweaking sketch-framer-config.js. The most common thing you might want to do is import a library file and include it in all your projects.
 
 ## Known bugs
-* Very complicated files may cause the plugin to crash, or result in a sluggish Framer mockup. Flatten groups (by appending `*` to their names) where you don't need to access the contents individually.
+* Very complicated files may cause the plugin to crash, or result in a sluggish Framer mockup. Flatten groups (by appending `*` to their names or using Sketch 3's `Layer > Flatten Selection to Bitmap` command) where you don't need to access the contents individually.
 * Only rectangular masks work. If you're masking with an odd shape, try flattening the group (by appending `*` to its name)
 * Effects that expand beyond the boundaries of a layer (eg. drop shadows, outside borders) cause minor positioning bugs. Try flattening these layers to bitmaps.
 * Avoid background blur, it causes bugs in positioning.
