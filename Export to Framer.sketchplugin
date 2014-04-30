@@ -515,25 +515,6 @@ function main() {
     [file_manager createDirectoryAtPath:framer_folder withIntermediateDirectories:true attributes:nil error:nil];
   }
 
-  // Get all layers in current page
-  var all_layers = [[doc currentPage] layers],
-      metadata = [];
-
-  for (var i=0; i < [all_layers length]; i++) {
-    process_layer(all_layers[i],metadata, 0);
-  }
-
-  file_path = framer_folder + "/views." + document_name + ".js";
-
-  var file_contents = "window.FramerPS = window.FramerPS || {};\nwindow.FramerPS['" + document_name +"'] = " + JSON.stringify(metadata,null,2);
-  save_file_from_string(file_path,file_contents);
-
-  // Save JS files from templates:
-  save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
-  if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
-    save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
-  }
-
   // Get JS files from Github
   var task = [[NSTask alloc] init],
       argsArray = [NSArray arrayWithObjects:"-O", framerjs_url, nil];
@@ -552,6 +533,25 @@ function main() {
       [task2 setArguments:argsArray];
       [task2 launch];
     }
+  }
+
+  // Get all layers in current page
+  var all_layers = [[doc currentPage] layers],
+      metadata = [];
+
+  for (var i=0; i < [all_layers length]; i++) {
+    process_layer(all_layers[i],metadata, 0);
+  }
+
+  file_path = framer_folder + "/views." + document_name + ".js";
+
+  var file_contents = "window.FramerPS = window.FramerPS || {};\nwindow.FramerPS['" + document_name +"'] = " + JSON.stringify(metadata,null,2);
+  save_file_from_string(file_path,file_contents);
+
+  // Save JS files from templates:
+  save_file_from_string(framer_folder + "/framerps.js", FramerPSJSContents);
+  if(![file_manager fileExistsAtPath:(target_folder + "/" + FramerScriptFileName)]) {
+    save_file_from_string(target_folder + "/" + FramerScriptFileName, FramerScriptFileContents);
   }
 
   // Create HTML and open in default browser if it's the first time we're exporting
