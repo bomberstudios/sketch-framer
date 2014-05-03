@@ -17,12 +17,12 @@ We're hard at work updating the plugin for Sketch 3! You can use the plugin with
 
 ## Installation
 1. Download the repository using [this link](https://github.com/bomberstudios/sketch-framer/archive/master.zip)
-2. Grab these two files from the ZIP: `Export to Framer.sketchplugin` and `sketch-framer-config.js`
-3. In Sketch 3, select `Plugins > Reveal Plugins Folder...` from the menu bar, and put the two files in this folder.
+2. Grab these files from the ZIP: `Export to Framer.sketchplugin`, `sandbox.js` and `sketch-framer-config.js`
+3. In Sketch 3, select `Plugins > Reveal Plugins Folder...` from the menu bar, and put those files in this folder.
 
 This is what your plugins folder should look like after you copy them:
 
-![Directory structure](https://f.cloud.github.com/assets/200566/2225432/decec214-9a8d-11e3-9482-07561a01964f.png)
+![Directory structure](https://cloud.githubusercontent.com/assets/3832/2870262/086f5c10-d2b9-11e3-8e6a-88a5c3d96587.png)
 
 Then you'll see the plugin in the plugins menu:
 
