@@ -31,8 +31,8 @@ function has_art(layer) {
     var has_art = false;
 
     var sublayers = [layer layers];
-    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-      var sublayer = sublayers[sub];
+    for (var sub=([sublayers count] - 1); sub >= 0; sub--) {
+      var sublayer = [sublayers objectAtIndex:sub]
       if(!should_ignore_layer(sublayer) && !should_become_view(sublayer)) {
         has_art = true;
       }
@@ -52,8 +52,8 @@ function export_layer(layer, depth) {
   }
 
   // copy off-screen
-  var copy = [layer duplicate];
-  var frame = [copy frame];
+  var layer_copy = [layer duplicate];
+  var frame = [layer_copy frame];
   [frame setX:-100000];
   [frame setY:-100000];
 
@@ -63,9 +63,9 @@ function export_layer(layer, depth) {
   // remove subgroups and only leave shapes
   if(is_group(layer) && !should_flatten_layer(layer)) {
     // log([layer name] + " is a group and i'm trying to extract its shapes")
-    var sublayers = [copy layers];
-    for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-      var sublayer = sublayers[sub];
+    var sublayers = [layer_copy layers];
+    for (var sub=([sublayers count] - 1); sub >= 0; sub--) {
+      var sublayer = [sublayers objectAtIndex:sub]
       if(!should_ignore_layer(sublayer)) {
         // log("       " + [layer name] + "." + [sublayer name] + " (" + [sublayer className] + ")");
         if(should_become_view(sublayer)) {
@@ -90,7 +90,7 @@ function export_layer(layer, depth) {
     log_depth("Exporting <" + [layer name] + "> including children art (" + artnames.join(", ") + ")", depth);
 
     // export
-    var rect = [copy rectByAccountingForStyleSize:[[copy absoluteRect] rect]],
+    var rect = [layer_copy rectByAccountingForStyleSize:[[layer_copy absoluteRect] rect]],
         slice = [MSSlice sliceWithRect:rect scale:2];
 
     if (in_sandbox()) {
@@ -103,7 +103,7 @@ function export_layer(layer, depth) {
   }
 
   // remove it
-  [copy removeFromParent];
+  [layer_copy removeFromParent];
 }
 function should_flatten_layer(layer) {
   var name = [layer name];
@@ -146,8 +146,8 @@ function process_layer(layer,metadata_container,depth) {
       var sublayers = [layer layers];
       // Apparently, Sketch returns child layers in reverse order (back to front),
       // so we'll loop backwards through them:
-      for (var sub=([sublayers length] - 1); sub >= 0; sub--) {
-        var current = sublayers[sub];
+      for (var sub=([sublayers count] - 1); sub >= 0; sub--) {
+        var current = [sublayers objectAtIndex:sub]
         process_layer(current,layer_data.children,depth+1);
       }
     }
@@ -175,21 +175,21 @@ function save_file_from_string(filename,the_string) {
 
   if (in_sandbox()) {
     sandboxAccess.accessFilePath_withBlock_persistPermission(filename, function(){
-      [str writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:null];
+      [str writeToFile:path atomically:true encoding:NSUTF8StringEncoding error:null];
     }, true)
   } else {
-    [str writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:null];
+    [str writeToFile:path atomically:true encoding:NSUTF8StringEncoding error:null];
   }
 }
 function get_next_id() {
-  return ++id;
+  return ++object_id;
 }
 function mask_bounds(layer) {
   var sublayers = [layer layers];
   var effective_mask = null;
 
-  for (var sub=0; sub < [sublayers length]; sub++) {
-    var current = sublayers[sub];
+  for (var sub=0; sub < [sublayers count]; sub++) {
+    var current = [sublayers objectAtIndex:sub];
     if(current && [current hasClippingMask]) {
       // If a native mask is detected, rename it and disable it (for now) so we can export its contents
       var _name = [current name] + "@@mask";
@@ -268,7 +268,7 @@ function extract_metadata_from(layer) {
   var maskFrame = mask_bounds(layer);
   var layerFrame = metadata_for(layer);
   // call maskframe first so it disables the mask, so we can get correct layerframe
-  
+
   //metadata.id = get_next_id(); // FIXME
 
   var metadata = {
@@ -301,8 +301,8 @@ var document_path = [[doc fileURL] path].split([doc displayName])[0],
     images_folder = target_folder + "/images",
     framer_folder = target_folder + "/framer",
     file_manager = [NSFileManager defaultManager],
-    id = 0
-    
+    object_id = 0
+
 function main() {
 
   log('#################################################################################################################################################');
@@ -344,8 +344,8 @@ function main() {
   var all_layers = [[doc currentPage] layers],
       metadata = [];
 
-  for (var i=0; i < [all_layers length]; i++) {
-    process_layer(all_layers[i],metadata, 0);
+  for (var i=0; i < [all_layers count]; i++) {
+    process_layer([all_layers objectAtIndex:i],metadata, 0);
   }
 
   file_path = framer_folder + "/views." + document_name + ".js";
