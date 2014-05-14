@@ -6,7 +6,7 @@
 
 
 /* Configuration */
-var framerjs_url = "http://rawgit.com/koenbok/Framer/master/build/framer.js";
+var framerjs_url = "http://shortcuts-for-framer.s3.amazonaws.com/framer.js";
 
 function major_version() {
   return [NSApp applicationVersion].substr(0,1);
