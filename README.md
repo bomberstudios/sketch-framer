@@ -1,3 +1,9 @@
+# This plugin is no longer maintained, since Framer Studio now imports from Sketch natively
+
+## The code and the rest of the README are left here for historical reasons
+
+---
+
 # Sketch Framer
 
 ![](sketch-framer-logo.png?raw=true)
